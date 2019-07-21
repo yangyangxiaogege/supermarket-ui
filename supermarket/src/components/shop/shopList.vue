@@ -32,7 +32,7 @@
                     </el-option>
                 </el-select>
                 <el-input v-model="shop.shopAccount" placeholder="门店账号" style="width: 150px" size="small"></el-input>
-                <el-button type="primary" size="small">查询</el-button>
+                <el-button type="primary" size="small" @click="searchShop">查询</el-button>
             </div>
             <!--工具-->
             <div class="my-tools">
@@ -61,7 +61,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr v-for="(item,index) in shopPageList" :key="item.shopName">
+                <tr v-for="(item,index) in pageList" :key="item.shopName">
                     <th scope="row"><el-checkbox v-model="item.checked" @change="handleCheckedShopsChange(item.checked,item.id)"></el-checkbox></th>
                     <td>{{index+1}}</td>
                     <td>{{item.shopName}}</td>
@@ -106,33 +106,44 @@
                         </div>
                         <div class="modal-body">
                             <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
-                                <el-form-item label="登陆账号" prop="name">
-                                    <el-input v-model="ruleForm.name"></el-input>
+                                <el-form-item label="登陆账号" prop="shopAccount">
+                                    <el-input v-model="ruleForm.shopAccount"></el-input>
                                 </el-form-item>
-                                <el-form-item label="登陆密码" prop="name">
-                                    <el-input v-model="ruleForm.name"></el-input>
+                                <el-form-item label="登陆密码" prop="shopPwd">
+                                    <el-input v-model="ruleForm.shopPwd"></el-input>
                                 </el-form-item>
-                                <el-form-item label="确认密码" prop="name">
-                                    <el-input v-model="ruleForm.name"></el-input>
+                                <el-form-item label="确认密码" prop="pwd">
+                                    <el-input v-model="ruleForm.pwd"></el-input>
                                 </el-form-item>
-                                <el-form-item label="门店名称" prop="name">
-                                    <el-input v-model="ruleForm.name"></el-input>
+                                <el-form-item label="门店名称" prop="shopName">
+                                    <el-input v-model="ruleForm.shopName"></el-input>
                                 </el-form-item>
-                                <el-form-item label="联系人" prop="name">
-                                    <el-input v-model="ruleForm.name"></el-input>
+
+                                <el-form-item label="门店类别" prop="shopTypeId">
+                                    <el-select v-model="ruleForm.shopTypeId" filterable placeholder="全部门店类别" size="small">
+                                        <el-option
+                                                v-for="item in shopTypeList"
+                                                :key="item.shopTypeName"
+                                                :label="item.shopTypeName"
+                                                :value="item.id">
+                                        </el-option>
+                                    </el-select>
+                                </el-form-item>
+                                <el-form-item label="联系人" prop="shopLinkman">
+                                    <el-input v-model="ruleForm.shopLinkman"></el-input>
                                 </el-form-item>
                                 <el-form-item label="联系电话">
-                                    <el-input v-model="ruleForm.phone"></el-input>
+                                    <el-input v-model="ruleForm.shopPhone"></el-input>
                                 </el-form-item>
-                                <el-form-item>
+                                <!--<el-form-item>
                                     <el-button type="primary" @click="submitForm('ruleForm')">立即创建</el-button>
                                     <el-button @click="resetForm('ruleForm')">重置</el-button>
-                                </el-form-item>
+                                </el-form-item>-->
                             </el-form>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-default">Close</button>
-                            <button type="button" class="btn btn-primary">Save changes</button>
+                            <button type="button" class="btn btn-default" @click="resetForm('ruleForm')">重置</button>
+                            <button type="button" class="btn btn-primary" @click="submitForm('ruleForm')">添加</button>
                         </div>
                     </div>
                 </div>
@@ -239,7 +250,7 @@
 </template>
 
 <script>
-    import QS from 'qs';
+    import Qs from 'qs';
     export default {
         name: "shopList",
         data() {
@@ -255,13 +266,12 @@
                     shopLinkman:'',
                     shopPhone:'',
                     shopAddress:'',
-                    shopAdvice:'',
-                    createDate:''
+                    shopAdvice:''
                 },
                 // 门店列表
                 shopList:[],
                 // 门店分页数据
-                shopPageList:[
+                pageList:[
                     {id:'1001',shopName:'厦门沃尔玛',checked:false,shopType:{shopTypeName:'a'},shopAccount:'',shopLinkman:'',shopPhone:'',shopAddress:'',createdDate:''},
                     {id:'1002',shopName:'阿里巴巴',checked:false,shopType:{shopTypeName:'a'},shopAccount:'',shopLinkman:'',shopPhone:'',shopAddress:'',createdDate:''}
                     ],
@@ -274,7 +284,7 @@
                 // 分页数据
                 currentPage: 1,
                 totalCount:0,
-                pageSize:1,
+                pageSize:10,
                 // 是否显示添加框
                 showAdd:false,
                 // 是否显示批量修改
@@ -286,14 +296,39 @@
                 radio:'1',
                 // 添加表单
                 ruleForm: {
-                    name: '',
-                    phone: '',
+                    shopName:'',
+                    shopAccount:'',
+                    shopPwd:'',
+                    shopLinkman:'',
+                    shopPhone:'',
+                    shopTypeId:''
                 },
                 rules: {
-                    name: [
-                        { required: true, message: '请输入账号', trigger: 'blur' },
+                    shopName: [
+                        { required: true, message: '请输入门店名称', trigger: 'blur' },
+                    ],
+                    shopAccount: [
+                        { required: true, message: '请输入门店账号', trigger: 'blur' },
                         { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
-                    ]
+                    ],
+                    shopPwd: [
+                        { required: true, message: '请输入门店密码', trigger: 'blur' },
+                        { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
+                    ],
+                    pwd: [
+                        { required: true, message: '请再次输入门店密码', trigger: 'blur' },
+                        { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
+                    ],
+                    shopLinkman: [
+                        { required: true, message: '请输入联系人姓名', trigger: 'blur' }
+                    ],
+                    shopPhone: [
+                        // { required: true, message: '请输入门店名称', trigger: 'blur' },
+                        { min: 11, max: 11, message: '手机格式不正确', trigger: 'blur' }
+                    ],
+                    shopTypeId: [
+                        { required: true, message: '请选择门店类型', trigger: 'blur' }
+                    ],
                 }
             }
         },
@@ -307,23 +342,39 @@
                 // let params = QS.stringify(this.shop);
                 this.$http.post('shop/shopList/').then(result => {
                     this.shopList = result.data.shopList;
-                    this.shopTypeList = result.data.shopTypeList;
-                    this.shopNameList = result.data.shopNameList;
-
                     // 初始化分页器
                     this.initPage();
 
                     // 获取分页数据
-                    this.getShopPageList(this.currentPage);
-                })
+                    this.currentPage = 1;
+                    this.getPageList(this.currentPage);
+                });
+                this.$http.post('shop/shopTypeList/').then(result => {
+                    this.shopTypeList = result.data;
+                });
+
+                this.$http.post('shop/shopNameList/').then(result => {
+                    this.shopNameList = result.data;
+                });
             },
             // 初始化分页器
             initPage(){
                 this.totalCount = this.shopList.length;
                 this.currentPage = 1;
             },
+            // 多条件查询
+            searchShop(){
+                let params = Qs.stringify(this.shop);
+                this.$http.post('shop/shopList',params).then(result => {
+                    this.shopList = result.data.shopList;
+
+                    // 获取分页数据
+                    this.currentPage = 1;
+                    this.getPageList(this.currentPage);
+                })
+            },
             // 根据当前页码获取门店分页数据 pageNo 当前页码
-            getShopPageList(pageNo){
+            getPageList(pageNo){
                 // 取消全选状态
                 this.checkAll = false;
                 this.checkedShops = [];
@@ -335,13 +386,13 @@
                 // 原始数据
                 let shopList = this.shopList;
                 // 分页数据
-                let shopPageList = [];
+                let pageList = [];
                 let pageCapacity = 0;
                 console.log('起始下标：'+startIndex);
                 for (let i = startIndex;i<shopList.length;i++){
                     let shop = shopList[i];
                     shop.checked = false;
-                    shopPageList.push(shop);
+                    pageList.push(shop);
                     pageCapacity++;
                     // 判断是否装满当前页
                     if (pageCapacity >= pageSize) {
@@ -349,14 +400,14 @@
                     }
                 }
                // console.log(shopPageList);
-                this.shopPageList = shopPageList;
+                this.pageList = pageList;
             },
             handleSizeChange(val) {
                 console.log(`每页 ${val} 条`);
             },
             // 当前页码改变
             handleCurrentChange(val) {
-                this.getShopPageList(val);
+                this.getPageList(val);
             },
             openAdd() {
                 this.showAdd = true;
@@ -444,9 +495,33 @@
             submitForm(formName) {
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
-                        alert('submit!');
+                        // 判断两次密码是否一致
+                        if (this.ruleForm.shopPwd!=this.ruleForm.pwd) return false;
+                        // 进行添加操作
+                        let params = Qs.stringify(this.ruleForm);
+                        this.$http.post('shop/addShop',params).then(result => {
+                            if (result.data.state){
+                                this.init();
+                                this.$message({
+                                    showClose:true,
+                                    type:'success',
+                                    message:'门店信息添加成功'
+                                })
+                            } else{
+                                this.$message({
+                                    showClose:true,
+                                    type:'danger',
+                                    message:'门店信息添加失败'
+                                })
+                            }
+                        })
+
                     } else {
-                        console.log('error submit!!');
+                        this.$message({
+                            showClose:true,
+                            type:'warning',
+                            message:'请填写完整信息'
+                        })
                         return false;
                     }
                 });

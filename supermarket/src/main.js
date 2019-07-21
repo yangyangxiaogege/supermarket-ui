@@ -8,8 +8,8 @@ Vue.use(VueRouter);
 import router from './router.js';
 // 导入axios模块
 import axios from 'axios';
-// axios.defaults.baseURL = 'http://192.168.16.122:8080/'; //龙溪
-axios.defaults.baseURL = 'http://192.167.9.126:8080/'; // 晓港
+axios.defaults.baseURL = 'http://192.168.16.122:8080/'; //龙溪
+//axios.defaults.baseURL = 'http://localhost:8080/'; // 晓港
 axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 Vue.prototype.$http = axios;
 // 导入element-ui组件
