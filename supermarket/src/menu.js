@@ -15,8 +15,9 @@ const navMenu = [
 		name:"商品管理",
 		icon:"el-icon-phone",
 		sub:[
-			{index:"2-1",name:"商品列表",routerName:"courierList",icon:"el-icon-tickets"},
-			{index:"2-2",name:"商品类别",routerName:"courierAdd",icon:"el-icon-plus"}
+			{index:"2-1",name:"商品列表",routerName:"goodsList",icon:"el-icon-tickets"},
+			{index:"2-2",name:"商品类别",routerName:"goodsType",icon:"el-icon-plus"},
+			{index:"2-3",name:"商品规格",routerName:"goodsSpec",icon:"el-icon-plus"}
 		]
 	},
 	{
@@ -24,9 +25,8 @@ const navMenu = [
 		name:"会员特权",
 		icon:"el-icon-phone",
 		sub:[
-			{index:"3-1",name:"会员列表",routerName:"regionList",icon:"el-icon-tickets"},
-			{index:"3-2",name:"会员等级",routerName:"subregionAdd",icon:"el-icon-tickets"},
-			{index:"3-3",name:"积分设置",routerName:"fixedRegion",icon:"el-icon-tickets"},
+			{index:"3-1",name:"会员列表",routerName:"memberList",icon:"el-icon-tickets"},
+			{index:"3-2",name:"会员等级",routerName:"memberLevel",icon:"el-icon-tickets"}
 		]
 	}
 ]

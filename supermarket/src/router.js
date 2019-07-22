@@ -16,7 +16,10 @@ import shopInfo from './components/shop/shopInfo.vue';
 import shopList from './components/shop/shopList.vue';
 import shopType from './components/shop/shopType.vue';
 import empMgr from './components/shop/empMgr.vue';
-
+// 导入goods模块组建
+import goodsList from './components/goods/goodsList.vue';
+import goodsType from './components/goods/goodsType.vue';
+import goodsSpec from './components/goods/goodsSpec.vue';
 
 const router = new VueRouter({
   //  mode:'history',
@@ -36,12 +39,16 @@ const router = new VueRouter({
             component:home,
             name:'home',
             children:[
-               {path:'test',component:test,name:'test'},
+                {path:'test',component:test,name:'test'},
                 {path:'welcome',component:welcome,name:'welcome'},
                 {path:'shopInfo',component:shopInfo,name:'shopInfo'},
                 {path:'shopList',component:shopList,name:'shopList'},
                 {path:'shopType',component:shopType,name:'shopType'},
                 {path:'empMgr',component:empMgr,name:'empMgr'},
+                {path:'goodsList',component:goodsList,name:'goodsList'},
+                {path:'goodsType',component:goodsType,name:'goodsType'},
+                {path:'goodsSpec',component:goodsSpec,name:'goodsSpec'}
+
             ]
         },
     ]

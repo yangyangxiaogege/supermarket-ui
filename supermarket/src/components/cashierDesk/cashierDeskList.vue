@@ -1,5 +1,5 @@
 <template>
-    <div id="shopList">
+    <div id="goodList">
         <div class="my-content">
             <!--搜索区-->
             <div class="my-search">
@@ -15,7 +15,7 @@
                         size="small"
                         placeholder="结束日期">
                 </el-date-picker>
-                <el-select v-model="shop.shopTypeId" filterable placeholder="全部门店类别" size="small">
+                <el-select v-model="shop.shopTypeId" filterable placeholder="全部商品类别" size="small">
                     <el-option
                             v-for="item in shopTypeList"
                             :key="item.shopTypeName"
@@ -23,21 +23,15 @@
                             :value="item.id">
                     </el-option>
                 </el-select>
-                <el-select v-model="shop.shopName" filterable placeholder="门店名称" size="small">
-                    <el-option
-                            v-for="item in shopNameList"
-                            :key="item.shopName"
-                            :label="item.shopName"
-                            :value="item.id">
-                    </el-option>
-                </el-select>
-                <el-input v-model="shop.shopAccount" placeholder="门店账号" style="width: 150px" size="small"></el-input>
+                <el-input v-model="shop.shopAccount" placeholder="商品条码/商品名称" style="width: 150px" size="small"></el-input>
                 <el-button type="primary" size="small" @click="searchShop">查询</el-button>
             </div>
             <!--工具-->
             <div class="my-tools">
-                <el-button icon="glyphicon glyphicon-plus" size="small" @click="openAdd">新增门店</el-button>
+                <el-button icon="glyphicon glyphicon-plus" size="small" @click="openAdd">新增商品信息</el-button>
+                <el-button icon="glyphicon glyphicon-edit" size="small" @click="openEdits">编辑排序</el-button>
                 <el-button icon="glyphicon glyphicon-edit" size="small" @click="openEdits">批量修改</el-button>
+                <el-button icon="glyphicon glyphicon-edit" size="small" @click="openEdits">批量删除</el-button>
                 <el-button icon="glyphicon glyphicon-download-alt" size="small">导出excel</el-button>
                 <el-button icon="glyphicon glyphicon-refresh" size="small">刷新数据</el-button>
             </div>
@@ -49,13 +43,10 @@
                         <el-checkbox v-model="checkAll" @change="handleCheckAllChange"></el-checkbox>
                     </th>
                     <th>序号</th>
-                    <th>门店名称</th>
-                    <th>门店编码</th>
-                    <th>门店类型</th>
-                    <th>登陆账号</th>
-                    <th>联系人</th>
-                    <th>联系人电话</th>
-                    <th>门店地址</th>
+                    <th>商品</th>
+                    <th>价格</th>
+                    <th>库存</th>
+                    <th>状态</th>
                     <th>创建时间</th>
                     <th>操作</th>
                 </tr>
@@ -69,11 +60,8 @@
                     <td>{{item.shopType.shopTypeName}}</td>
                     <td>{{item.shopAccount}}</td>
                     <td>{{item.shopLinkman}}</td>
-                    <td>{{item.shopPhone}}</td>
-                    <td>{{item.shopAddress}}</td>
-                    <td>{{item.createDate}}</td>
                     <td>
-                        <el-tag type="warning" size="small" @click="shopDetail(item.id)">详情</el-tag>
+                        <el-tag type="warning" size="small" @click="shopDetail(shop.id)">详情</el-tag>
                         <el-tag type="danger" size="small">删除</el-tag>
                     </td>
                 </tr>
@@ -196,12 +184,12 @@
                             <h4 class="modal-title">门店详情</h4>
                         </div>
                         <div class="modal-body">
-                            <el-form ref="form" :model="shop" label-width="80px">
+                            <el-form ref="form" :model="form" label-width="80px">
                                 <el-form-item label="门店编码">
-                                    <el-tag>{{shop.id}}</el-tag>
+                                    <el-tag>010258</el-tag>
                                 </el-form-item>
                                 <el-form-item label="创建时间">
-                                    <el-tag>{{shop.createDate}}</el-tag>
+                                    <el-tag>2019-07-14 09:36:02</el-tag>
                                 </el-form-item>
                                 <el-form-item label="LOGO">
                                     <img class="my-logo" src="../../resource/images/512×512-点png.png">
@@ -217,15 +205,13 @@
                                     <el-input v-model="shop.shopPhone"></el-input>
                                 </el-form-item>
                                 <el-form-item label="营业时间">
-                                    <el-time-picker
-                                            is-range
-                                            v-model="shop.doBusinessTime"
-                                            range-separator="至"
-                                            start-placeholder="开始时间"
-                                            end-placeholder="结束时间"
-                                            placeholder="选择时间范围">
-                                    </el-time-picker>
+                                    <el-col :span="11">
+                                        <el-date-picker type="date" placeholder="选择日期" v-model="shop.createDate" style="width: 100%;"></el-date-picker>
+                                    </el-col>
                                     <el-col class="line" :span="2">至</el-col>
+                                    <el-col :span="11">
+                                        <el-time-picker type="fixed-time" placeholder="选择时间" v-model="shop.startDate" style="width: 100%;"></el-time-picker>
+                                    </el-col>
                                 </el-form-item>
                                 <el-form-item label="门店公告">
                                     <el-input type="textarea" v-model="shop.shopAdvice"></el-input>
@@ -271,14 +257,11 @@
                     shopAdvice:''
                 },
                 // 门店列表
-                shopList:[
-                    {id:'1001',shopName:'厦门沃尔玛',checked:false,shopType:{shopTypeName:'a'},shopAccount:'',shopLinkman:'',shopPhone:'',shopAddress:'',createdDate:'',shopHours:'08:30-22:00'},
-                    {id:'1002',shopName:'阿里巴巴',checked:false,shopType:{shopTypeName:'a'},shopAccount:'',shopLinkman:'',shopPhone:'',shopAddress:'',createdDate:'',shopHours:'09:30-22:00'}
-                ],
+                shopList:[],
                 // 门店分页数据
                 pageList:[
-                    {id:'1001',shopName:'厦门沃尔玛',checked:false,shopType:{shopTypeName:'a'},shopAccount:'',shopLinkman:'',shopPhone:'',shopAddress:'',createdDate:'',shopHours:'08:30-22:00'},
-                    {id:'1002',shopName:'阿里巴巴',checked:false,shopType:{shopTypeName:'a'},shopAccount:'',shopLinkman:'',shopPhone:'',shopAddress:'',createdDate:'',shopHours:'09:30-22:00'}
+                    {id:'1001',shopName:'厦门沃尔玛',checked:false,shopType:{shopTypeName:'a'},shopAccount:'',shopLinkman:'',shopPhone:'',shopAddress:'',createdDate:''},
+                    {id:'1002',shopName:'阿里巴巴',checked:false,shopType:{shopTypeName:'a'},shopAccount:'',shopLinkman:'',shopPhone:'',shopAddress:'',createdDate:''}
                     ],
                 // 门店类型
                 shopTypeList:[],
@@ -393,6 +376,7 @@
                 // 分页数据
                 let pageList = [];
                 let pageCapacity = 0;
+                console.log('起始下标：'+startIndex);
                 for (let i = startIndex;i<shopList.length;i++){
                     let shop = shopList[i];
                     shop.checked = false;
@@ -407,9 +391,7 @@
                 this.pageList = pageList;
             },
             handleSizeChange(val) {
-                this.pageSize = val;
-                this.currentPage = 1;
-                this.getPageList(this.currentPage);
+                console.log(`每页 ${val} 条`);
             },
             // 当前页码改变
             handleCurrentChange(val) {
@@ -438,38 +420,29 @@
                 this.showEdits = false;
             },
             shopDetail(id){
-                this.shop = this.pageList.filter(item => item.id == id)[0];
-                // 对营业时间进行处理
-                let shopHours = this.shop.shopHours.split('-');
-                let begin = shopHours[0].split(':');
-                let end = shopHours[1].split(":");
-                let start = new Date(2019,7,22,parseInt(begin[0]),parseInt(begin[1]));
-                let over = new Date(2019,7,22,parseInt(end[0]),parseInt(end[1]));
-                this.shop.doBusinessTime = [start,over];
-
+                this.shop = this.shopPageList.filter(item => item.id == id)[0];
                 this.showDetail = true;
-            },
-            onSubmit() {
-                console.log('submit!');
             },
             closeDetail(){
                 this.showDetail = false;
             },
             // 选中所有门店
             handleCheckAllChange(val) {
+                //console.log(val);
                 if (val){
                     // 选中所有
                     this.checkedShops = [];
-                    this.pageList.forEach((item,index) => {
+                    this.shopPageList.forEach((item,index) => {
                         item.checked = true;
                         this.checkedShops.push(item.id);
                     })
                 } else{
-                    this.pageList.forEach((item,index) => {
+                    this.shopPageList.forEach((item,index) => {
                         item.checked = false;
                         this.checkedShops = [];
                     })
                 }
+                // this.shopPageList = this.shopPageList;
                 // 强制更新
                 this.$forceUpdate();
                 console.log(this.checkedShops);
@@ -477,12 +450,14 @@
             // 门店选中状态发生改变
             handleCheckedShopsChange(val,id) {
                 let shop = {};
-                this.pageList.forEach((item,index) => {
+                this.shopPageList.forEach((item,index) => {
                     if (item.id == id){
                         item.checked = val;
                         shop = item;
                     }
                 })
+                //console.log(shop);
+                //shop.checked = val;
                 if (shop.checked){
                     // 添加到选中的列表中
                     this.checkedShops.push(shop.id);
@@ -495,12 +470,14 @@
                 }
 
                 // 判断是否全部选中
-                if (this.checkedShops.length == this.pageList.length){
+                if (this.checkedShops.length == this.shopPageList.length){
                     this.checkAll = true;
                 } else{
                     this.checkAll = false;
                 }
+
                 this.$forceUpdate();
+                // console.log(this.checkedShops);
 
             },
             submitForm(formName) {
@@ -545,7 +522,7 @@
 </script>
 
 <style scoped lang="less">
-    #shopList{
+    #goodList{
         .el-tag{
             &:hover{
                 cursor: pointer;
