@@ -4,18 +4,19 @@
             <!--搜索区-->
             <div class="my-search">
                 <el-date-picker
-                        v-model="shop.beginDate"
+                        v-model="queryShop.beginDate"
                         type="date"
                         size="small"
                         placeholder="开始日期">
                 </el-date-picker>
                 <el-date-picker
-                        v-model="shop.endDate"
+                        v-model="queryShop.endDate"
                         type="date"
                         size="small"
                         placeholder="结束日期">
                 </el-date-picker>
-                <el-select v-model="shop.shopTypeId" filterable placeholder="全部门店类别" size="small">
+                <el-select v-model="queryShop.shopTypeId" filterable placeholder="全部门店类别" size="small">
+                    <el-option label="全部门店类别" value=""></el-option>
                     <el-option
                             v-for="item in shopTypeList"
                             :key="item.shopTypeName"
@@ -23,15 +24,16 @@
                             :value="item.id">
                     </el-option>
                 </el-select>
-                <el-select v-model="shop.shopName" filterable placeholder="门店名称" size="small">
+                <el-select v-model="queryShop.shopName" filterable placeholder="门店名称" size="small">
+                    <el-option label="全部门店名称" value=""></el-option>
                     <el-option
                             v-for="item in shopNameList"
                             :key="item.shopName"
                             :label="item.shopName"
-                            :value="item.id">
+                            :value="item.shopName">
                     </el-option>
                 </el-select>
-                <el-input v-model="shop.shopAccount" placeholder="门店账号" style="width: 150px" size="small"></el-input>
+                <el-input v-model="queryShop.shopAccount" placeholder="门店账号" style="width: 150px" size="small"></el-input>
                 <el-button type="primary" size="small" @click="searchShop">查询</el-button>
             </div>
             <!--工具-->
@@ -73,7 +75,7 @@
                     <td>{{item.shopAddress}}</td>
                     <td>{{item.createDate}}</td>
                     <td>
-                        <el-tag type="warning" size="small" @click="shopDetail(item.id)">详情</el-tag>
+                        <el-tag type="warning" size="small" @click="shopDetail(item.shopAccount)">详情</el-tag>
                         <el-tag type="danger" size="small">删除</el-tag>
                     </td>
                 </tr>
@@ -110,10 +112,10 @@
                                     <el-input v-model="ruleForm.shopAccount"></el-input>
                                 </el-form-item>
                                 <el-form-item label="登陆密码" prop="shopPwd">
-                                    <el-input v-model="ruleForm.shopPwd"></el-input>
+                                    <el-input type="password" v-model="ruleForm.shopPwd"></el-input>
                                 </el-form-item>
                                 <el-form-item label="确认密码" prop="pwd">
-                                    <el-input v-model="ruleForm.pwd"></el-input>
+                                    <el-input type="password" v-model="ruleForm.pwd"></el-input>
                                 </el-form-item>
                                 <el-form-item label="门店名称" prop="shopName">
                                     <el-input v-model="ruleForm.shopName"></el-input>
@@ -196,7 +198,7 @@
                             <h4 class="modal-title">门店详情</h4>
                         </div>
                         <div class="modal-body">
-                            <el-form ref="form" :model="shop" label-width="80px">
+                            <el-form ref="updateForm" :model="shop" :rules="rules" label-width="80px">
                                 <el-form-item label="门店编码">
                                     <el-tag>{{shop.id}}</el-tag>
                                 </el-form-item>
@@ -207,25 +209,25 @@
                                     <img class="my-logo" src="../../resource/images/512×512-点png.png">
                                     <span style="color: red;">图片分辨率:建议500*500</span>
                                 </el-form-item>
-                                <el-form-item label="门店名称">
-                                    <el-input v-model="shop.shopName"></el-input>
+                                <el-form-item label="门店名称" prop="shopName">
+                                    <el-input v-model="shop.shopName" @blur="shopNameChange(shop.shopAccount,shop.shopName)"></el-input>
                                 </el-form-item>
-                                <el-form-item label="联系人">
+                                <el-form-item label="联系人" prop="shopLinkman">
                                     <el-input v-model="shop.shopLinkman"></el-input>
                                 </el-form-item>
-                                <el-form-item label="联系电话">
+                                <el-form-item label="联系电话" prop="shopPhone">
                                     <el-input v-model="shop.shopPhone"></el-input>
                                 </el-form-item>
                                 <el-form-item label="营业时间">
                                     <el-time-picker
                                             is-range
                                             v-model="shop.doBusinessTime"
-                                            range-separator="至"
+                                            value-format="HH:mm"
+                                            range-separator="-"
                                             start-placeholder="开始时间"
                                             end-placeholder="结束时间"
                                             placeholder="选择时间范围">
                                     </el-time-picker>
-                                    <el-col class="line" :span="2">至</el-col>
                                 </el-form-item>
                                 <el-form-item label="门店公告">
                                     <el-input type="textarea" v-model="shop.shopAdvice"></el-input>
@@ -233,15 +235,10 @@
                                 <el-form-item label="门店地址">
                                     <el-input v-model="shop.shopAddress"></el-input>
                                 </el-form-item>
-                                <el-form-item>
-                                    <el-button type="primary" @click="onSubmit">保存</el-button>
-                                    <el-button>取消</el-button>
-                                </el-form-item>
                             </el-form>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-default">Close</button>
-                            <button type="button" class="btn btn-primary">Save changes</button>
+                            <button type="button" class="btn btn-primary" @click="updateShopInfo('updateForm',shop.shopName)">保存</button>
                         </div>
                     </div>
                 </div>
@@ -257,18 +254,14 @@
         name: "shopList",
         data() {
             return {
-                shop:{
-                    id:'',
+                shop:{},
+                // 查询门店条件对象
+                queryShop:{
                     shopName:'',
+                    shopAccount:'',
                     beginDate:'',
                     endDate:'',
                     shopTypeId:'',
-                    shopTypeName:'',
-                    shopAccount:'',
-                    shopLinkman:'',
-                    shopPhone:'',
-                    shopAddress:'',
-                    shopAdvice:''
                 },
                 // 门店列表
                 shopList:[
@@ -369,7 +362,7 @@
             },
             // 多条件查询
             searchShop(){
-                let params = Qs.stringify(this.shop);
+                let params = Qs.stringify(this.queryShop);
                 this.$http.post('shop/shopList',params).then(result => {
                     this.shopList = result.data.shopList;
 
@@ -437,20 +430,81 @@
             closeEdits(){
                 this.showEdits = false;
             },
-            shopDetail(id){
-                this.shop = this.pageList.filter(item => item.id == id)[0];
-                // 对营业时间进行处理
-                let shopHours = this.shop.shopHours.split('-');
-                let begin = shopHours[0].split(':');
-                let end = shopHours[1].split(":");
-                let start = new Date(2019,7,22,parseInt(begin[0]),parseInt(begin[1]));
-                let over = new Date(2019,7,22,parseInt(end[0]),parseInt(end[1]));
-                this.shop.doBusinessTime = [start,over];
-
-                this.showDetail = true;
+            // 门店详情
+            shopDetail(shopAccount){
+                this.$http.post('shop/accountAndName','account='+shopAccount).then(result => {
+                    this.shop = result.data.shopAccount;
+                    // 对营业时间进行处理
+                    if (this.shop.shopHours != null && this.shop.shopHours != ''){
+                        let shopHours = this.shop.shopHours.split('-');
+                        let begin = shopHours[0].split(':');
+                        let end = shopHours[1].split(":");
+                        let start = new Date(2019,7,22,parseInt(begin[0]),parseInt(begin[1]));
+                        let over = new Date(2019,7,22,parseInt(end[0]),parseInt(end[1]));
+                        this.shop.doBusinessTime = [start,over];
+                    }
+                    this.showDetail = true;
+                })
             },
-            onSubmit() {
-                console.log('submit!');
+            // 判断门店名称是否改变
+            shopNameChange(shopAccount,shopName){
+                this.$http.post('shop/accountAndName','account='+shopAccount).then(result => {
+                    let shop = result.data.shopAccount;
+                   if (shop.shopName != shopName){
+                       // 判断门店名称是否被占用
+                       this.$http.post('shop/accountAndName','shopName='+shopName).then(result => {
+                           if (result.data.shopName != null && result.data.shopName != undefined) {
+                               this.$message({
+                                   showClose:true,
+                                   type:'warning',
+                                   message:'门店名称'+shopName+'已经被占用'
+                               })
+                               this.shop.shopName = shop.shopName;
+                           }
+                       });
+                   }
+                });
+            },
+            // 更新门店信息
+            updateShopInfo(shop,shopName){
+                this.$refs[shop].validate((valid) => {
+                    if (valid) {
+                        // 获取营业时间
+                        if (this.shop.doBusinessTime != null){
+                            this.shop.shopHours = this.shop.doBusinessTime[0]+'-'+this.shop.doBusinessTime[1];
+                        }else{
+                            this.shop.shopHours = '';
+                        }
+                        // 进行更新操作
+                        let shop = this.shop;
+                        let params = `id=`+shop.id+`&shopName=`+shop.shopName+`&shopPhone=`+shop.shopPhone
+                                        +`&shopLinkman=`+shop.shopLinkman+`&shopAdvice=`+shop.shopAdvice
+                                        +`&shopAddress=`+shop.shopAddress;
+                        this.$http.post('shop/upShop',params+'&fileName=').then(result => {
+                            if (result.data.state){
+                                this.init();
+                                this.$message({
+                                    showClose:true,
+                                    type:'success',
+                                    message:'门店信息保存成功'
+                                })
+                            } else{
+                                this.$message({
+                                    showClose:true,
+                                    type:'danger',
+                                    message:'门店信息保存失败'
+                                })
+                            }
+                        })
+                    } else {
+                        this.$message({
+                            showClose:true,
+                            type:'warning',
+                            message:'请填写完整信息'
+                        })
+                        return false;
+                    }
+                })
             },
             closeDetail(){
                 this.showDetail = false;
@@ -503,30 +557,55 @@
                 this.$forceUpdate();
 
             },
+            // 添加
             submitForm(formName) {
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
-                        // 判断两次密码是否一致
-                        if (this.ruleForm.shopPwd!=this.ruleForm.pwd) return false;
-                        // 进行添加操作
-                        let params = Qs.stringify(this.ruleForm);
-                        this.$http.post('shop/addShop',params).then(result => {
-                            if (result.data.state){
-                                this.init();
+                        // 判断门店名称是否可用
+                        this.$http.post('shop/accountAndName','account='+this.ruleForm.shopAccount+'&shopName='+this.ruleForm.shopName).then(result => {
+                            if (result.data.shopAccount != null && result.data.shopAccount != undefined){
                                 this.$message({
                                     showClose:true,
-                                    type:'success',
-                                    message:'门店信息添加成功'
+                                    type:'warning',
+                                    message:'该门店账号已经存在'
                                 })
-                            } else{
+                            } else if(result.data.shopName != null && result.data.shopName != undefined){
                                 this.$message({
                                     showClose:true,
-                                    type:'danger',
-                                    message:'门店信息添加失败'
+                                    type:'warning',
+                                    message:'该门店名称已经被占用'
+                                })
+                            }else{
+                                // 判断两次密码是否一致
+                                if (this.ruleForm.shopPwd!=this.ruleForm.pwd) {
+                                    this.$message({
+                                        showClose:true,
+                                        type:'warning',
+                                        message:'两次密码不一致'
+                                    })
+                                    return;
+                                }
+
+                                // 进行添加操作
+                                let params = Qs.stringify(this.ruleForm);
+                                this.$http.post('shop/addShop',params).then(result => {
+                                    if (result.data.state){
+                                        this.init();
+                                        this.$message({
+                                            showClose:true,
+                                            type:'success',
+                                            message:'门店信息添加成功'
+                                        })
+                                    } else{
+                                        this.$message({
+                                            showClose:true,
+                                            type:'danger',
+                                            message:'门店信息添加失败'
+                                        })
+                                    }
                                 })
                             }
-                        })
-
+                        });
                     } else {
                         this.$message({
                             showClose:true,

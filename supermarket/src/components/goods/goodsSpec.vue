@@ -56,50 +56,33 @@
 
         </div>
 
-        <!--添加门店弹出框-->
+        <!--添加商品规格-->
         <transition>
             <div class="my-tanchukuang" v-if="showAdd">
                 <div>
                     <div class="my-modal modal-content">
                         <div class="modal-header">
                             <button type="button" class="close"><span aria-hidden="true" @click="closeAdd">×</span></button>
-                            <h4 class="modal-title">新增门店信息</h4>
+                            <h4 class="modal-title">新增商品规格</h4>
                         </div>
                         <div class="modal-body">
                             <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
-                                <el-form-item label="登陆账号" prop="shopAccount">
+                                <el-form-item label="模板名称" prop="shopAccount">
                                     <el-input v-model="ruleForm.shopAccount"></el-input>
                                 </el-form-item>
-                                <el-form-item label="登陆密码" prop="shopPwd">
-                                    <el-input v-model="ruleForm.shopPwd"></el-input>
-                                </el-form-item>
-                                <el-form-item label="确认密码" prop="pwd">
-                                    <el-input v-model="ruleForm.pwd"></el-input>
-                                </el-form-item>
-                                <el-form-item label="门店名称" prop="shopName">
-                                    <el-input v-model="ruleForm.shopName"></el-input>
-                                </el-form-item>
-
-                                <el-form-item label="门店类别" prop="shopTypeId">
-                                    <el-select v-model="ruleForm.shopTypeId" filterable placeholder="全部门店类别" size="small">
+                                <el-form-item label="规格数">
+                                    <el-select v-model="selectedSpecCount" filterable size="small">
                                         <el-option
-                                                v-for="item in shopTypeList"
-                                                :key="item.shopTypeName"
-                                                :label="item.shopTypeName"
-                                                :value="item.id">
+                                                v-for="item in specCount"
+                                                :key="item.toString()"
+                                                :label="item"
+                                                :value="item">
                                         </el-option>
                                     </el-select>
                                 </el-form-item>
-                                <el-form-item label="联系人" prop="shopLinkman">
-                                    <el-input v-model="ruleForm.shopLinkman"></el-input>
+                                <el-form-item v-for="item in specInputs" :label="'规格数'+item.count" prop="shopAccount" :key="item.count.toString()">
+                                    <el-input v-model="item.val"></el-input>
                                 </el-form-item>
-                                <el-form-item label="联系电话">
-                                    <el-input v-model="ruleForm.shopPhone"></el-input>
-                                </el-form-item>
-                                <!--<el-form-item>
-                                    <el-button type="primary" @click="submitForm('ruleForm')">立即创建</el-button>
-                                    <el-button @click="resetForm('ruleForm')">重置</el-button>
-                                </el-form-item>-->
                             </el-form>
                         </div>
                         <div class="modal-footer">
@@ -213,9 +196,19 @@
 <script>
     import Qs from 'qs';
     export default {
-        name: "shopList",
+        name: "goodsSpec",
         data() {
             return {
+                goodsSpec:{
+                    specTmpName:'',
+                    specStr:this.specStr
+                },
+                // 规格数可选值
+                specCount:[1,2,3,4,5,6,7,8,9,10],
+                // 当前选中的规格数
+                selectedSpecCount:1,
+                // 规格
+                specInputs:[{count:1,val:''}],
                 shop:{
                     id:'',
                     shopName:'',
@@ -489,6 +482,42 @@
             },
             resetForm(formName) {
                 this.$refs[formName].resetFields();
+            }
+        },
+        watch:{
+            'selectedSpecCount':function (newVal) {
+                // 判断增加规格还是减少规格数
+                if (newVal>this.specInputs.length){
+                    // 增加
+                    console.log('增加'+(newVal-this.specInputs.length)+'个');
+                    let addCount = newVal-this.specInputs.length;
+                    for (let i = 0;i<addCount;i++){
+                        console.log('count:'+(this.specInputs.length+1));
+                        this.specInputs.push({count:this.specInputs.length+1,val:''});
+                    }
+                } else{
+                    // 减少
+                    // 从哪开始移除和移除几个
+                    let startIndex = newVal;
+                    let reduceCount = this.specInputs.length-newVal;
+                    console.log('从下标'+startIndex+'开始移除,移除'+reduceCount+'个');
+                    this.specInputs.splice(startIndex,reduceCount);
+                }
+
+            }
+        },
+        computed:{
+            specStr(){
+                let str = '';
+                this.specInputs.forEach((item,index) => {
+                    if (index!=this.specInputs.length-1){
+                        str=str+item.val+',';
+                    } else {
+                        str += item.val;
+                    }
+                })
+                console.log(str);
+                return str;
             }
         }
     }
