@@ -41,7 +41,7 @@
                 <el-button icon="glyphicon glyphicon-plus" size="small" @click="openAdd">新增门店</el-button>
                 <el-button icon="glyphicon glyphicon-edit" size="small" @click="openEdits">批量修改</el-button>
                 <el-button icon="glyphicon glyphicon-download-alt" size="small">导出excel</el-button>
-                <el-button icon="glyphicon glyphicon-refresh" size="small">刷新数据</el-button>
+                <el-button icon="glyphicon glyphicon-refresh" size="small" @click="refresh">刷新数据</el-button>
             </div>
             <!--数据-->
             <table class="my-tab table table-bordered">
@@ -121,8 +121,8 @@
                                     <el-input v-model="ruleForm.shopName"></el-input>
                                 </el-form-item>
 
-                                <el-form-item label="门店类别" prop="shopTypeId">
-                                    <el-select v-model="ruleForm.shopTypeId" filterable placeholder="全部门店类别" size="small">
+                                <el-form-item label="门店类别">
+                                    <el-select v-model="ruleForm.shopTypeId" filterable placeholder="请选择门店类别" size="small">
                                         <el-option
                                                 v-for="item in shopTypeList"
                                                 :key="item.shopTypeName"
@@ -252,6 +252,7 @@
     import Qs from 'qs';
     export default {
         name: "shopList",
+        inject:['reload'],
         data() {
             return {
                 shop:{},
@@ -335,6 +336,10 @@
            this.init();
         },
         methods:{
+            // 刷新当前页面
+            refresh(){
+                this.reload();
+            },
             // 获取门店列表
             init(){
                 // let params = QS.stringify(this.shop);
@@ -433,16 +438,17 @@
             // 门店详情
             shopDetail(shopAccount){
                 this.$http.post('shop/accountAndName','account='+shopAccount).then(result => {
-                    this.shop = result.data.shopAccount;
+                    let shop = result.data.shopAccount;
                     // 对营业时间进行处理
-                    if (this.shop.shopHours != null && this.shop.shopHours != ''){
-                        let shopHours = this.shop.shopHours.split('-');
+                    if (shop.shopHours != null && shop.shopHours != ''){
+                        let shopHours = shop.shopHours.split('-');
                         let begin = shopHours[0].split(':');
                         let end = shopHours[1].split(":");
                         let start = new Date(2019,7,22,parseInt(begin[0]),parseInt(begin[1]));
                         let over = new Date(2019,7,22,parseInt(end[0]),parseInt(end[1]));
-                        this.shop.doBusinessTime = [start,over];
+                        shop.doBusinessTime = [start,over];
                     }
+                    this.shop = shop;
                     this.showDetail = true;
                 })
             },
@@ -471,7 +477,11 @@
                     if (valid) {
                         // 获取营业时间
                         if (this.shop.doBusinessTime != null){
-                            this.shop.shopHours = this.shop.doBusinessTime[0]+'-'+this.shop.doBusinessTime[1];
+                            let start = this.shop.doBusinessTime[0];
+                            let startStr = start.getHours()+":"+start.getMinutes();
+                            let end = this.shop.doBusinessTime[1];
+                            let endStr = end.getHours()+":"+end.getMinutes();
+                            this.shop.shopHours = startStr+"-"+endStr;
                         }else{
                             this.shop.shopHours = '';
                         }
@@ -479,7 +489,7 @@
                         let shop = this.shop;
                         let params = `id=`+shop.id+`&shopName=`+shop.shopName+`&shopPhone=`+shop.shopPhone
                                         +`&shopLinkman=`+shop.shopLinkman+`&shopAdvice=`+shop.shopAdvice
-                                        +`&shopAddress=`+shop.shopAddress;
+                                        +`&shopAddress=`+shop.shopAddress+`&shopHours=`+shop.shopHours;
                         this.$http.post('shop/upShop',params+'&fileName=').then(result => {
                             if (result.data.state){
                                 this.init();

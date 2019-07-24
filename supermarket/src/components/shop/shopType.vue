@@ -5,7 +5,7 @@
         </div>
         <div class="my-tools">
             <el-button icon="glyphicon glyphicon-plus" size="small" @click="add">新增门店类别</el-button>
-            <el-button icon="glyphicon glyphicon-trash" size="small" style="color: red;" @click="del">批量删除</el-button>
+            <el-button icon="glyphicon glyphicon-trash" size="small" style="color: red;" @click="dels">批量删除</el-button>
             <el-button icon="glyphicon glyphicon-refresh" size="small">刷新数据</el-button>
         </div>
         <table class="my-tab table table-bordered">
@@ -27,8 +27,8 @@
                 <td>{{item.shopTypeName}}</td>
                 <td>{{item.createDate}}</td>
                 <td>
-                    <el-tag type="warning" size="small">详情</el-tag>
-                    <el-tag type="danger" size="small">删除</el-tag>
+                    <el-tag type="warning" size="small" @click="editShopType(item.id)">编辑</el-tag>
+                    <el-tag type="danger" size="small" @click="del(item.id)">删除</el-tag>
                 </td>
             </tr>
             </tbody>
@@ -52,22 +52,66 @@
                 checkedShopType:[],
             }
         },
+        created(){
+            this.init();
+        },
         methods:{
             // 初始化数据
             init(){
-
+                this.$http.post('shopType/showShopTypeList').then(result => {
+                    this.shopTypeList = result.data;
+                })
             },
             // 添加门店类别
             add() {
-                this.$prompt('请输入类别名称', '提示', {
+                this.$prompt('请输入类别名称', '添加门店类别', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
                     inputErrorMessage: '类别名称有误'
                 }).then(({ value }) => {
+                    this.$http.post('shopType/addShopType','shopTypeName='+value).then(result => {
+                        if (result.data.state){
+                            this.$message({
+                                type: 'success',
+                                message: '添加成功'
+                            });
+                            // 重新初始化数据
+                            this.init();
+                        } else{
+                            this.$message({
+                                type: 'success',
+                                message: '添加失败'
+                            });
+                        }
+                    })
+                }).catch(() => {
                     this.$message({
-                        type: 'success',
-                        message: '你的类别名称是: ' + value
+                        type: 'info',
+                        message: '取消输入'
                     });
+                });
+            },
+            editShopType(id){
+                this.$prompt('门店类型名称', '编辑门店类型', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    inputErrorMessage: '类别名称有误'
+                }).then(({ value }) => {
+                    this.$http.post('shopType/upShopType','id='+id+'&shopTypeName='+value).then(result => {
+                        if (result.data.state){
+                            this.$message({
+                                type: 'success',
+                                message: '修改成功'
+                            });
+                            // 重新初始化数据
+                            this.init();
+                        } else{
+                            this.$message({
+                                type: 'success',
+                                message: '修改失败'
+                            });
+                        }
+                    })
                 }).catch(() => {
                     this.$message({
                         type: 'info',
@@ -76,7 +120,7 @@
                 });
             },
             // 批量删除
-            del(){
+            dels(){
                 // 判断是否有选中的门店
                 if (this.checkedShopType.length == 0){
                     this.$message({
@@ -86,11 +130,51 @@
                     });
                     return;
                 }
-                this.$message({
-                    showClose: true,
-                    type:'success',
-                    message: '删除成功'
-                });
+                let ids = this.checkedShopType.join(',');
+                let flag = window.confirm("确定删除编号为("+ids+")的数据吗？该操作会将所有属于此类型的门店类型重置");
+
+                if (flag == false) return;
+                // console.log(ids);
+                this.$http.post('shopType/delShopType','ids='+ids).then(result => {
+                    if (result.data.state){
+                        this.$message({
+                            type: 'success',
+                            message: '删除成功'
+                        });
+                        this.checkedShopType = [];
+                        // 重新初始化数据
+                        this.init();
+                    } else{
+                        this.$message({
+                            type: 'success',
+                            message: '删除失败'
+                        });
+                    }
+                })
+
+            },
+            // 根据id删除
+            del(id){
+                let flag = window.confirm("确定删除编号为("+id+")的数据吗？该操作会将所有属于此类型的门店类型重置");
+                if (flag == false) return;
+                // console.log(ids);
+                this.$http.post('shopType/delShopType','ids='+id).then(result => {
+                    if (result.data.state){
+                        this.$message({
+                            type: 'success',
+                            message: '删除成功'
+                        });
+                        this.checkedShopType = [];
+                        // 重新初始化数据
+                        this.init();
+                    } else{
+                        this.$message({
+                            type: 'success',
+                            message: '删除失败'
+                        });
+                    }
+                })
+
             },
             // 选中所有门店类别
             handleCheckAllChange(val) {

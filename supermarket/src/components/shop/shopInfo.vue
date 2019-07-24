@@ -9,7 +9,8 @@
             </el-form-item>
             <el-form-item label="LOGO">
                 <input type="file" ref="fileUpload" v-show="false" @change="chooseShopLogo" accept="image/*"/>
-                <img ref="shopLogo" class="my-logo" src="../../resource/images/512×512-点png.png" @click="openFileDialog">
+                <!--../../resource/images/512×512-点png.png-->
+                <img ref="shopLogo" class="my-logo" src="http://192.168.16.104:8080/yanlingji.jpg" @click="openFileDialog">
                 <span style="color: red;">图片分辨率:建议500*500</span>
             </el-form-item>
             <el-form-item label="门店名称" prop="shopName">
@@ -90,14 +91,20 @@
                 this.reload();
             },
             init(){
-                if (this.shop.shopHours != null && this.shop.shopHours != ''){
-                    let shopHours = this.shop.shopHours.split('-');
-                    let begin = shopHours[0].split(':');
-                    let end = shopHours[1].split(":");
-                    let start = new Date(2019,7,22,parseInt(begin[0]),parseInt(begin[1]));
-                    let over = new Date(2019,7,22,parseInt(end[0]),parseInt(end[1]));
-                    this.shop.doBusinessTime = [start,over];
-                }
+                // 获取本店信息
+                this.$http.post('employee/selectshop','id='+2).then(result => {
+                    let shop = result.data.currentshop;
+                    if (shop.shopHours != null && shop.shopHours != ''){
+                        let shopHours = shop.shopHours.split('-');
+                        let begin = shopHours[0].split(':');
+                        let end = shopHours[1].split(":");
+                        let start = new Date(2019,7,22,parseInt(begin[0]),parseInt(begin[1]));
+                        let over = new Date(2019,7,22,parseInt(end[0]),parseInt(end[1]));
+                        shop.doBusinessTime = [start,over];
+                    }
+                    this.shop = shop;
+                })
+
             },
             // 选择门店logo
             openFileDialog(){
@@ -149,7 +156,11 @@
                     if (valid) {
                         // 获取营业时间
                         if (this.shop.doBusinessTime != null){
-                            this.shop.shopHours = this.shop.doBusinessTime[0]+'-'+this.shop.doBusinessTime[1];
+                            let start = this.shop.doBusinessTime[0];
+                            let startStr = start.getHours()+":"+start.getMinutes();
+                            let end = this.shop.doBusinessTime[1];
+                            let endStr = end.getHours()+":"+end.getMinutes();
+                            this.shop.shopHours = startStr+"-"+endStr;
                         }else{
                             this.shop.shopHours = '';
                         }
@@ -159,16 +170,18 @@
                         formData.append('id',shop.id);
                         formData.append('shopName',shop.shopName);
                         formData.append('shopPhone',shop.shopPhone);
+                        formData.append('shopHours',shop.shopHours);
                         formData.append('shopLinkman',shop.shopLinkman);
                         formData.append('shopAdvice',shop.shopAdvice);
                         formData.append('shopAddress',shop.shopAddress);
-                        formData.append('fileName',shop.shopLogo);
+                       formData.append('fileName',shop.shopLogo);
                         let config = {
                             headers: {
                                 'Content-Type': 'multipart/form-data'
                             }
                         };
                         this.$http.post('shop/upShop',formData,config).then(result => {
+                            console.log(result);
                             if (result.data.state){
                                 this.init();
                                 this.$message({

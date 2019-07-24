@@ -3,7 +3,7 @@
         <div class="my-content">
             <!--搜索区-->
             <div class="my-search">
-                <el-select v-model="emp.empPhone" filterable placeholder="全部员工类型" size="small">
+                <el-select v-model="queryEmp.empTypeId" filterable placeholder="全部员工类型" size="small">
                     <el-option label="全部员工类型" value=""></el-option>
                     <el-option
                             v-for="item in roleList"
@@ -12,13 +12,13 @@
                             :value="item.id">
                     </el-option>
                 </el-select>
-                <el-select v-model="emp.empStatus" filterable placeholder="全部员工状态" size="small">
+                <el-select v-model="queryEmp.empStatus" filterable placeholder="全部员工状态" size="small">
                     <el-option label="全部员工状态" value=""></el-option>
                     <el-option label="正常" value="0"></el-option>
                     <el-option label="休息" value="1"></el-option>
                     <el-option label="离职" value="2"></el-option>
                 </el-select>
-                <el-input v-model="emp.condition" placeholder="归属门店/账号/联系人/联系电话" style="width: 250px" size="small"></el-input>
+                <el-input v-model="queryEmp.condition" placeholder="归属门店/账号/联系人/联系电话" style="width: 250px" size="small"></el-input>
                 <el-button type="primary" size="small" @click="searchEmp">查询</el-button>
             </div>
             <!--工具-->
@@ -79,7 +79,7 @@
 
         </div>
 
-        <!--添加门店弹出框-->
+        <!--添加员工弹出框-->
         <transition>
             <div class="my-tanchukuang" v-if="showAdd">
                 <div>
@@ -130,12 +130,19 @@
         name: "shopList",
         data() {
             return {
+                // 员工对象
                 emp:{
                     empAccount:'',
                     empName:'',
                     empStatus:'',
                     empPhone:'',
                     condition:'',
+                },
+                // 员工对象查询条件
+                queryEmp:{
+                    empTypeId:'',
+                    empStatus:'',
+                    condition:''
                 },
                 // 员工列表
                 empList:[],
@@ -152,8 +159,6 @@
                 // 是否显示添加框
                 showAdd:false,
                 showEdits:false,
-                checked:false,
-                radio:'1',
                 // 添加表单
                 ruleForm: {
                     empAccount:'',
