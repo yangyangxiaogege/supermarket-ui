@@ -1,9 +1,9 @@
 <template>
-    <div id="shopList">
+    <div id="empMgr">
         <div class="my-content">
             <!--搜索区-->
             <div class="my-search">
-                <el-select v-model="queryEmp.empTypeId" filterable placeholder="全部员工类型" size="small">
+                <el-select v-model="queryEmp.roleId" filterable placeholder="全部员工类型" size="small">
                     <el-option label="全部员工类型" value=""></el-option>
                     <el-option
                             v-for="item in roleList"
@@ -25,7 +25,7 @@
             <div class="my-tools">
                 <el-button icon="glyphicon glyphicon-plus" size="small" @click="openAdd">新增员工</el-button>
                 <el-button icon="glyphicon glyphicon-download-alt" size="small" @click="exportExcel">导出excel</el-button>
-                <el-button icon="glyphicon glyphicon-refresh" size="small">刷新数据</el-button>
+                <el-button icon="glyphicon glyphicon-refresh" size="small" @click="refresh">刷新数据</el-button>
             </div>
             <!--数据-->
             <table class="my-tab table table-bordered">
@@ -57,7 +57,7 @@
                     <td>{{emp.empPhone}}</td>
                     <td>{{emp.createDate}}</td>
                     <td>
-                        <el-tag type="warning" size="small">详情</el-tag>
+                        <el-tag type="warning" size="small" @click="openDetail(emp.id)">详情</el-tag>
                         <el-tag type="danger" size="small">删除</el-tag>
                     </td>
                 </tr>
@@ -90,24 +90,24 @@
                         </div>
                         <div class="modal-body">
                             <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
-                                <el-form-item label="归属门店" prop="shopNameId">
-                                    <el-select v-model="ruleForm.shopNameId" filterable placeholder="请选择归属门店" size="small">
+                                <el-form-item label="归属门店" prop="shopId">
+                                    <el-select v-model="ruleForm.shopId" filterable placeholder="请选择归属门店" size="small">
                                         <el-option v-for="item in shopNameList" :label="item.shopName" :value="item.id" :key="item.shopName"></el-option>
                                     </el-select>
                                 </el-form-item>
                                 <el-form-item label="登陆账号" prop="empAccount">
-                                    <el-input v-model="ruleForm.empAccount"></el-input>
+                                    <el-input v-model="ruleForm.empAccount" @blur="checkEmpAccount(ruleForm.empAccount)"></el-input>
                                 </el-form-item>
                                 <el-form-item label="登陆密码" prop="empPwd">
-                                    <el-input v-model="ruleForm.empPwd"></el-input>
+                                    <el-input type="password" v-model="ruleForm.empPwd"></el-input>
                                 </el-form-item>
                                 <el-form-item label="确认密码" prop="pwd">
-                                    <el-input v-model="ruleForm.pwd"></el-input>
+                                    <el-input type="password" v-model="ruleForm.pwd"></el-input>
                                 </el-form-item>
                                 <el-form-item label="员工名称" prop="empName">
                                     <el-input v-model="ruleForm.empName"></el-input>
                                 </el-form-item>
-                                <el-form-item label="联系电话">
+                                <el-form-item label="联系电话" prop="empPhone">
                                     <el-input v-model="ruleForm.empPhone"></el-input>
                                 </el-form-item>
                             </el-form>
@@ -120,6 +120,54 @@
                 </div>
             </div>
         </transition>
+
+        <!--员工详情-->
+        <transition>
+            <div class="my-tanchukuang" v-if="showDetail">
+                <div>
+                    <div class="my-modal modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close"><span aria-hidden="true" @click="closeDetail">×</span></button>
+                            <h4 class="modal-title">员工详情</h4>
+                        </div>
+                        <div class="modal-body">
+                            <el-form label-width="80px">
+                                <el-form-item label="归属门店">
+                                    <el-tag>{{emp.shop.shopName}}</el-tag>
+                                </el-form-item>
+                                <el-form-item label="员工账号">
+                                    <el-tag>{{emp.empAccount}}</el-tag>
+                                </el-form-item>
+                                <el-form-item label="员工名称" prop="empName">
+                                    <el-input v-model="emp.empName"></el-input>
+                                </el-form-item>
+                                <el-form-item label="员工类型">
+                                    <el-input v-model="emp.roles.roleName" :disabled="true"></el-input>
+                                </el-form-item>
+                                <el-form-item label="员工状态">
+                                    <el-select v-model="emp.empStatus.toString()"  placeholder="请选择员工状态" size="small">
+                                        <el-option label="请选择员工状态" value=""></el-option>
+                                        <el-option label="正常" value="0"></el-option>
+                                        <el-option label="休息" value="1"></el-option>
+                                        <el-option label="离职" value="2"></el-option>
+                                    </el-select>
+                                </el-form-item>
+                                <el-form-item label="创建时间" >
+                                    <el-input v-model="emp.createDate" :disabled="true"></el-input>
+                                </el-form-item>
+                                <el-form-item label="联系电话">
+                                    <el-input v-model="emp.empPhone"></el-input>
+                                </el-form-item>
+                            </el-form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" @click="updateEmp">保存</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </transition>
     </div>
 </template>
 
@@ -127,7 +175,8 @@
     import Qs from 'qs';
     import jquery from 'jquery/dist/jquery.min.js';
     export default {
-        name: "shopList",
+        inject:['reload'],
+        name: "empMgr",
         data() {
             return {
                 // 员工对象
@@ -140,7 +189,7 @@
                 },
                 // 员工对象查询条件
                 queryEmp:{
-                    empTypeId:'',
+                    roleId:'',
                     empStatus:'',
                     condition:''
                 },
@@ -159,6 +208,7 @@
                 // 是否显示添加框
                 showAdd:false,
                 showEdits:false,
+                showDetail:false,
                 // 添加表单
                 ruleForm: {
                     empAccount:'',
@@ -166,7 +216,7 @@
                     pwd:'',
                     empName:'',
                     empPhone:'',
-                    shopNameId:''
+                    shopId:''
                 },
                 rules: {
                     empAccount: [
@@ -181,14 +231,13 @@
                         { required: true, message: '请输入密码', trigger: 'blur' },
                         { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
                     ],
-                    shopNameId: [
+                    shopId: [
                         { required: true, message: '请选择归属门店', trigger: 'blur' }
                     ],
                     empName: [
                         { required: true, message: '请输入员工姓名', trigger: 'blur' }
                     ],
                     empPhone: [
-                        { required: true, message: '请输入联系电话', trigger: 'blur' },
                         { min: 11, max: 11, message: '请输入正确的手机格式', trigger: 'blur' }
                     ]
                 }
@@ -198,6 +247,10 @@
             this.init();
         },
         methods:{
+            // 刷新当前页面
+            refresh(){
+                this.reload();
+            },
             // 初始化
             init(){
                 // 获取员工列表
@@ -221,11 +274,11 @@
             },
             // 多条件查询
             searchEmp(){
-                let params = Qs.stringify(this.emp);
+                let params = Qs.stringify(this.queryEmp);
                 this.$http.post('employee/empCondition',params).then(result => {
                     this.empList = result.data;
                     // 获取分页数据
-                    this.currentPage = 1;
+                    this.initPage();
                     this.getPageList(this.currentPage);
                 })
             },
@@ -257,13 +310,17 @@
                // this.$forceUpdate();
             },
             handleSizeChange(val) {
-                console.log(`每页 ${val} 条`);
+                this.pageSize = val;
+                this.initPage();
+                this.getPageList(this.currentPage);
             },
             // 当前页码改变
             handleCurrentChange(val) {
                 this.getPageList(val);
             },
             openAdd() {
+                // 清空表单数据
+                this.ruleForm = {};
                 // 获取门店列表
                 this.$http.post('shop/shopNameList').then(result => {
                     this.shopNameList = result.data;
@@ -273,25 +330,25 @@
             closeAdd(){
                 this.showAdd = false;
             },
-            // 导出excel数据
-            exportExcel(){
-               // jquery.post('http://192.168.16.122:8080/employee/exportEmp',null,null);
-               //  this.$http({
-               //      method:'post',
-               //      url:'employee/exportEmp',
-               //      responseType:'blob'
-               //  }).then(result => {
-               //
-               //  });
+            // 判断登陆账号是否已经存在
+            checkEmpAccount(empAccount){
 
-                window.location.href = 'http://192.168.16.122:8080/employee/exportEmp';
+                this.$http.post('employee/findEmpByName','account='+empAccount).then(result => {
+                    let emp = result.data;
+                    if (emp != null && emp.empAccount != null && emp.empAccount != '' && emp.empAccount != undefined ){
+                        // 账号已被占用
+                        if (emp.empAccount == empAccount) {
+                            this.$message({
+                                showClose:true,
+                                type:'warning',
+                                message:'账号'+empAccount+'已被占用'
+                            });
+                            this.ruleForm.empAccount = '';
+                        }
+                    }
+                });
             },
-            openEdits(){
-                this.showEdits = true;
-            },
-            closeEdits(){
-                this.showEdits = false;
-            },
+            // 新增员工
             submitForm(formName) {
                 this.$refs[formName].validate((valid) => {
                     // 判断两次密码是否一致
@@ -300,7 +357,7 @@
                             showClose:true,
                             type:'warning',
                             message:'两次密码不一致'
-                        })
+                        });
                         return false;
                     }
                     if (valid) {
@@ -311,7 +368,9 @@
                                     showClose:true,
                                     type:'success',
                                     message:'添加员工成功'
-                                })
+                                });
+                                // 初始化数据
+                                this.init();
                             } else{
                                 this.$message({
                                     showClose:true,
@@ -332,13 +391,56 @@
             },
             resetForm(formName) {
                 this.$refs[formName].resetFields();
+            },
+            // 导出excel数据
+            exportExcel(){
+               window.location.href = this.$store.state.baseUrl+'employee/exportEmp';
+            },
+            openEdits(){
+                this.showEdits = true;
+            },
+            closeEdits(){
+                this.showEdits = false;
+            },
+            // 员工详情
+            openDetail(id){
+                // 根据员工id获取员工数据
+                this.$http.post('employee/findEmpById','id='+id).then(result => {
+                    this.emp = result.data;
+                    this.showDetail = true;
+                })
+            },
+            closeDetail(){
+                this.showDetail = false;
+            },
+            // 更新员工信息
+            updateEmp(){
+                let emp = this.emp;
+                let params = 'empStatus='+emp.empStatus+'&empName='+emp.empName+'&empPhone='+emp.empPhone+'&id='+emp.id;
+                this.$http.post('employee/modifyEmpById',params).then(result => {
+                    if (result.data.result){
+                        this.$message({
+                            showClose:true,
+                            type:'success',
+                            message:'保存成功'
+                        })
+                        // 刷新数据
+                        this.init();
+                    } else{
+                        this.$message({
+                            showClose:true,
+                            type:'danger',
+                            message:'保存失败'
+                        })
+                    }
+                })
             }
         }
     }
 </script>
 
 <style scoped lang="less">
-    #shopList{
+    #empMgr{
         height: 100%;
         overflow: auto;
         .my-content{

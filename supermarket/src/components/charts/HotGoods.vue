@@ -1,28 +1,15 @@
 <template>
-    <div id="test">
-        <div id="container" ref="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+    <!--热销商品-->
+    <div id="shopSummary">
+        <div id="container1" ref="container"></div>
     </div>
 </template>
 
 <script>
-    // // 导入highChart 相关内容
-    // import Highcharts from 'highcharts/highstock';
-    // import HighchartsMore from 'highcharts/highcharts-more';
-    // import HighchartsDrilldown from 'highcharts/modules/drilldown';
-    // import Highcharts3D from 'highcharts/highcharts-3d';
-    // import Highmaps from 'highcharts/modules/map';
-    // import 'highcharts/modules/data.js';
-    // HighchartsMore(Highcharts);
-    // HighchartsDrilldown(Highcharts);
-    // Highcharts3D(Highcharts);
-    // Highmaps(Highcharts);
-
-    // 引入highcharts
     import Highcharts from 'highcharts/highcharts.js';
-    import 'highcharts/modules/data.js';
-
+    import  'highcharts/modules/data.js';
     export default {
-        name: "test",
+        name: "HotGoods",
         data(){
             return {
                 chart:null,
@@ -35,7 +22,7 @@
         methods:{
             // 初始化
             init() {
-                Highcharts.chart('container', {
+                Highcharts.chart('container1', {
                     chart: {
                         plotBackgroundColor: null,
                         plotBorderWidth: null,
@@ -92,18 +79,6 @@
     }
 </script>
 
-<style scoped lang="less">
-    #test{
-        #datatable {
-            border: 1px solid #ccc;
-            border-collapse: collapse;
-            border-spacing: 0;
-            font-size: 12px;
-        }
-        td,th {
-            border: 1px solid #ccc;
-            padding: 4px 20px;
-        }
-    }
+<style scoped>
 
 </style>

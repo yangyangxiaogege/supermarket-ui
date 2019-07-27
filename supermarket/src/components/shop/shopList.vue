@@ -40,7 +40,7 @@
             <div class="my-tools">
                 <el-button icon="glyphicon glyphicon-plus" size="small" @click="openAdd">新增门店</el-button>
                 <el-button icon="glyphicon glyphicon-edit" size="small" @click="openEdits">批量修改</el-button>
-                <el-button icon="glyphicon glyphicon-download-alt" size="small">导出excel</el-button>
+                <el-button icon="glyphicon glyphicon-download-alt" size="small" @click="exportExcel">导出excel</el-button>
                 <el-button icon="glyphicon glyphicon-refresh" size="small" @click="refresh">刷新数据</el-button>
             </div>
             <!--数据-->
@@ -242,7 +242,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </transition>
     </div>
@@ -372,7 +371,7 @@
                     this.shopList = result.data.shopList;
 
                     // 获取分页数据
-                    this.currentPage = 1;
+                   this.initPage();
                     this.getPageList(this.currentPage);
                 })
             },
@@ -404,6 +403,7 @@
                // console.log(shopPageList);
                 this.pageList = pageList;
             },
+            // 页面大小改变
             handleSizeChange(val) {
                 this.pageSize = val;
                 this.currentPage = 1;
@@ -414,6 +414,7 @@
                 this.getPageList(val);
             },
             openAdd() {
+                this.ruleForm = {};
                 this.showAdd = true;
             },
             closeAdd(){
@@ -434,6 +435,11 @@
             },
             closeEdits(){
                 this.showEdits = false;
+            },
+            // 导出门店数据
+            exportExcel(){
+                console.log('come in')
+                window.location.href = this.$store.state.baseUrl+'shop/exportShop';
             },
             // 门店详情
             shopDetail(shopAccount){
@@ -666,6 +672,7 @@
             left: 0;
             background-color: rgba(0,0,0,0.5);
             border: 15px solid white;
+            z-index: 1000;
             .my-modal{
                 overflow: auto;
                 height: 404px;

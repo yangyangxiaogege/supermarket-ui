@@ -6,7 +6,7 @@
         <div class="my-tools">
             <el-button icon="glyphicon glyphicon-plus" size="small" @click="add">新增门店类别</el-button>
             <el-button icon="glyphicon glyphicon-trash" size="small" style="color: red;" @click="dels">批量删除</el-button>
-            <el-button icon="glyphicon glyphicon-refresh" size="small">刷新数据</el-button>
+            <el-button icon="glyphicon glyphicon-refresh" size="small" @click="refresh">刷新数据</el-button>
         </div>
         <table class="my-tab table table-bordered">
             <thead>
@@ -39,6 +39,7 @@
 <script>
     export default {
         name: "shopType",
+        inject:['reload'],
         data(){
             return {
                 // 门店类型列表
@@ -56,6 +57,10 @@
             this.init();
         },
         methods:{
+            // 刷新当前页面
+            refresh(){
+                this.reload();
+            },
             // 初始化数据
             init(){
                 this.$http.post('shopType/showShopTypeList').then(result => {

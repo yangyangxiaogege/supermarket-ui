@@ -20,6 +20,9 @@ import empMgr from './components/shop/empMgr.vue';
 import goodsList from './components/goods/goodsList.vue';
 import goodsType from './components/goods/goodsType.vue';
 import goodsSpec from './components/goods/goodsSpec.vue';
+// 导入member模块
+import memberList from './components/member/memberList.vue';
+import memberLevel from './components/member/memberLevel.vue';
 
 const router = new VueRouter({
   //  mode:'history',
@@ -47,8 +50,9 @@ const router = new VueRouter({
                 {path:'empMgr',component:empMgr,name:'empMgr'},
                 {path:'goodsList',component:goodsList,name:'goodsList'},
                 {path:'goodsType',component:goodsType,name:'goodsType'},
-                {path:'goodsSpec',component:goodsSpec,name:'goodsSpec'}
-
+                {path:'goodsSpec',component:goodsSpec,name:'goodsSpec'},
+                {path:'memberList',component:memberList,name:'memberList'},
+                {path:'memberLevel',component:memberLevel,name:'memberLevel'}
             ]
         },
     ]

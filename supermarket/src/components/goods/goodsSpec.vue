@@ -40,22 +40,7 @@
                 </tr>
                 </tbody>
             </table>
-            <!--分页-->
-            <div class="my-page">
-                <el-pagination
-                        @size-change="handleSizeChange"
-                        @current-change="handleCurrentChange"
-                        :current-page="currentPage"
-                        :page-sizes="[1,10, 20, 30]"
-                        :page-size="pageSize"
-                        layout="total, sizes, prev, pager, next, jumper"
-                        :total="totalCount">
-                </el-pagination>
-            </div>
-            <div style="height: 200px"></div>
-
         </div>
-
         <!--添加商品规格-->
         <transition>
             <div class="my-tanchukuang" v-if="showAdd">
@@ -130,56 +115,44 @@
             </div>
         </transition>
 
-        <!--门店详情弹出框-->
+        <!--规格详情编辑弹出框-->
         <transition>
             <div class="my-tanchukuang" v-if="showDetail">
                 <div>
-                    <div class="my-modal modal-content">
+                    <div class="my-modal modal-content"  style="width: 800px;margin-left: -400px;">
                         <div class="modal-header">
                             <button type="button" class="close"><span aria-hidden="true" @click="closeDetail">×</span></button>
-                            <h4 class="modal-title">门店详情</h4>
+                            <h4 class="modal-title">编辑规格模板</h4>
                         </div>
                         <div class="modal-body">
-                            <el-form ref="form" :model="form" label-width="80px">
-                                <el-form-item label="门店编码">
-                                    <el-tag>010258</el-tag>
-                                </el-form-item>
-                                <el-form-item label="创建时间">
-                                    <el-tag>2019-07-14 09:36:02</el-tag>
-                                </el-form-item>
-                                <el-form-item label="LOGO">
-                                    <img class="my-logo" src="../../resource/images/512×512-点png.png">
-                                    <span style="color: red;">图片分辨率:建议500*500</span>
-                                </el-form-item>
-                                <el-form-item label="门店名称">
-                                    <el-input v-model="shop.shopName"></el-input>
-                                </el-form-item>
-                                <el-form-item label="联系人">
-                                    <el-input v-model="shop.shopLinkman"></el-input>
-                                </el-form-item>
-                                <el-form-item label="联系电话">
-                                    <el-input v-model="shop.shopPhone"></el-input>
-                                </el-form-item>
-                                <el-form-item label="营业时间">
-                                    <el-col :span="11">
-                                        <el-date-picker type="date" placeholder="选择日期" v-model="shop.createDate" style="width: 100%;"></el-date-picker>
-                                    </el-col>
-                                    <el-col class="line" :span="2">至</el-col>
-                                    <el-col :span="11">
-                                        <el-time-picker type="fixed-time" placeholder="选择时间" v-model="shop.startDate" style="width: 100%;"></el-time-picker>
-                                    </el-col>
-                                </el-form-item>
-                                <el-form-item label="门店公告">
-                                    <el-input type="textarea" v-model="shop.shopAdvice"></el-input>
-                                </el-form-item>
-                                <el-form-item label="门店地址">
-                                    <el-input v-model="shop.shopAddress"></el-input>
-                                </el-form-item>
-                                <el-form-item>
-                                    <el-button type="primary" @click="onSubmit">保存</el-button>
-                                    <el-button>取消</el-button>
-                                </el-form-item>
-                            </el-form>
+                            <el-tabs type="border-card">
+                                <el-tab-pane label="用户管理">
+                                    <el-button type="primary" size="small" @click="addSpecDetail">新增规格内容</el-button>
+                                    <el-button type="primary" size="small">修改规格名称</el-button>
+                                    <table class="table table-bordered">
+                                        <thead>
+                                        <tr>
+                                            <th>模板编码</th>
+                                            <th>模板名称</th>
+                                            <th>操作</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr>
+                                            <td>1</td>
+                                            <td>item.shopName</td>
+                                            <td>
+                                                <el-tag type="warning" size="small" @click="shopDetail(shop.id)">详情</el-tag>
+                                                <el-tag type="danger" size="small">删除</el-tag>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </el-tab-pane>
+                                <el-tab-pane label="配置管理">配置管理</el-tab-pane>
+                                <el-tab-pane label="角色管理">角色管理</el-tab-pane>
+                                <el-tab-pane label="定时任务补偿">定时任务补偿</el-tab-pane>
+                            </el-tabs>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default">Close</button>
@@ -209,6 +182,10 @@
                 selectedSpecCount:1,
                 // 规格
                 specInputs:[{count:1,val:''}],
+                // 规格详情列表
+                specDetailList:[
+                    {id:1,specDetailName:'红色'}
+                ],
                 shop:{
                     id:'',
                     shopName:'',
@@ -356,6 +333,35 @@
                // console.log(shopPageList);
                 this.pageList = pageList;
             },
+            // 新增规格内容
+            addSpecDetail(){
+                this.$prompt('请输入规格名称', '新增规格内容', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    inputErrorMessage: '规格名称有误'
+                }).then(({ value }) => {
+                    this.$http.post('shopType/addShopType','shopTypeName='+value).then(result => {
+                        if (result.data.state){
+                            this.$message({
+                                type: 'success',
+                                message: '添加成功'
+                            });
+                            // 重新初始化数据
+                            this.init();
+                        } else{
+                            this.$message({
+                                type: 'success',
+                                message: '添加失败'
+                            });
+                        }
+                    })
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '取消输入'
+                    });
+                });
+            },
             handleSizeChange(val) {
                 console.log(`每页 ${val} 条`);
             },
@@ -386,7 +392,7 @@
                 this.showEdits = false;
             },
             shopDetail(id){
-                this.shop = this.shopPageList.filter(item => item.id == id)[0];
+                // this.shop = this.shopPageList.filter(item => item.id == id)[0];
                 this.showDetail = true;
             },
             closeDetail(){
