@@ -3,13 +3,13 @@
         <div class="my-content">
             <!--搜索区-->
             <div class="my-search">
-                <el-input v-model="shop.shopAccount" placeholder="模板名称/模板编码" style="width: 150px" size="small"></el-input>
+                <el-input placeholder="模板名称/模板编码" style="width: 150px" size="small"></el-input>
                 <el-button type="primary" size="small" @click="searchShop">查询</el-button>
             </div>
             <!--工具-->
             <div class="my-tools">
                 <el-button icon="glyphicon glyphicon-plus" size="small" @click="openAdd">新增商品规格</el-button>
-                <el-button icon="glyphicon glyphicon-edit" size="small" @click="openEdits">删除规格模板</el-button>
+                <el-button icon="glyphicon glyphicon-edit" size="small" @click="batchDeleteSpecTmp">删除规格模板</el-button>
                 <el-button icon="glyphicon glyphicon-refresh" size="small">刷新数据</el-button>
             </div>
             <!--数据-->
@@ -27,14 +27,14 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr v-for="(item,index) in pageList" :key="item.shopName">
+                <tr v-for="(item,index) in specTmpList" :key="item.specTmpName">
                     <th scope="row"><el-checkbox v-model="item.checked" @change="handleCheckedShopsChange(item.checked,item.id)"></el-checkbox></th>
                     <td>{{index+1}}</td>
-                    <td>{{item.shopName}}</td>
                     <td>{{item.id}}</td>
-                    <td>{{item.shopType.shopTypeName}}</td>
+                    <td>{{item.specTmpName}}</td>
+                    <td>{{item.sCount}}</td>
                     <td>
-                        <el-tag type="warning" size="small" @click="shopDetail(shop.id)">详情</el-tag>
+                        <el-tag type="warning" size="small" @click="specDetail(item.id)">详情</el-tag>
                         <el-tag type="danger" size="small">删除</el-tag>
                     </td>
                 </tr>
@@ -52,8 +52,8 @@
                         </div>
                         <div class="modal-body">
                             <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
-                                <el-form-item label="模板名称" prop="shopAccount">
-                                    <el-input v-model="ruleForm.shopAccount"></el-input>
+                                <el-form-item label="模板名称" prop="specTmpName">
+                                    <el-input v-model="ruleForm.specTmpName"></el-input>
                                 </el-form-item>
                                 <el-form-item label="规格数">
                                     <el-select v-model="selectedSpecCount" filterable size="small">
@@ -65,7 +65,7 @@
                                         </el-option>
                                     </el-select>
                                 </el-form-item>
-                                <el-form-item v-for="item in specInputs" :label="'规格数'+item.count" prop="shopAccount" :key="item.count.toString()">
+                                <el-form-item v-for="item in specInputs" :label="'规格'+item.count" prop="specName" :key="item.count.toString()">
                                     <el-input v-model="item.val"></el-input>
                                 </el-form-item>
                             </el-form>
@@ -73,42 +73,6 @@
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" @click="resetForm('ruleForm')">重置</button>
                             <button type="button" class="btn btn-primary" @click="submitForm('ruleForm')">添加</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </transition>
-
-        <!--批量修改-->
-        <transition>
-            <div class="my-tanchukuang" v-if="showEdits">
-                <div>
-                    <div class="my-modal modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close"><span aria-hidden="true" @click="closeEdits">×</span></button>
-                            <h4 class="modal-title">批量修改</h4>
-                        </div>
-                        <div class="modal-body">
-                            <div class="my-edit-item">
-                                <el-checkbox v-model="checked"></el-checkbox>
-                                <el-select v-model="shop.shopTypeId" placeholder="请选择" size="small">
-                                    <el-option
-                                            v-for="item in shopTypes"
-                                            :key="item.shopTypeName"
-                                            :label="item.shopTypeName"
-                                            :value="item.id">
-                                    </el-option>
-                                </el-select>
-                            </div>
-                            <div class="my-edit-item">
-                                <el-checkbox v-model="checked"></el-checkbox>
-                                <el-radio v-model="radio" label="1">备选项</el-radio>
-                                <el-radio v-model="radio" label="2">备选项</el-radio>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-default">Close</button>
-                            <button type="button" class="btn btn-primary">Save changes</button>
                         </div>
                     </div>
                 </div>
@@ -172,94 +136,37 @@
         name: "goodsSpec",
         data() {
             return {
-                goodsSpec:{
-                    specTmpName:'',
-                    specStr:this.specStr
+                // 规格模板列表
+                specTmpList:[],
+                querySpecTmp:{
+                    id:'',
+                    specTypeName:'',
                 },
                 // 规格数可选值
                 specCount:[1,2,3,4,5,6,7,8,9,10],
                 // 当前选中的规格数
                 selectedSpecCount:1,
-                // 规格
                 specInputs:[{count:1,val:''}],
                 // 规格详情列表
                 specDetailList:[
                     {id:1,specDetailName:'红色'}
                 ],
-                shop:{
-                    id:'',
-                    shopName:'',
-                    beginDate:'',
-                    endDate:'',
-                    shopTypeId:'',
-                    shopTypeName:'',
-                    shopAccount:'',
-                    shopLinkman:'',
-                    shopPhone:'',
-                    shopAddress:'',
-                    shopAdvice:''
-                },
-                // 门店列表
-                shopList:[],
-                // 门店分页数据
-                pageList:[
-                    {id:'1001',shopName:'厦门沃尔玛',checked:false,shopType:{shopTypeName:'a'},shopAccount:'',shopLinkman:'',shopPhone:'',shopAddress:'',createdDate:''},
-                    {id:'1002',shopName:'阿里巴巴',checked:false,shopType:{shopTypeName:'a'},shopAccount:'',shopLinkman:'',shopPhone:'',shopAddress:'',createdDate:''}
-                    ],
-                // 门店类型
-                shopTypeList:[],
-                // 门店名称列表
-                shopNameList:[],
-                // 选中的门店
-                checkedShops:[],
-                // 分页数据
-                currentPage: 1,
-                totalCount:0,
-                pageSize:10,
                 // 是否显示添加框
                 showAdd:false,
-                // 是否显示批量修改
-                showEdits:false,
                 showDetail:false,
                 // 是否选中所有
                 checkAll:false,
-                checked:false,
-                radio:'1',
                 // 添加表单
                 ruleForm: {
-                    shopName:'',
-                    shopAccount:'',
-                    shopPwd:'',
-                    shopLinkman:'',
-                    shopPhone:'',
-                    shopTypeId:''
+
                 },
                 rules: {
-                    shopName: [
-                        { required: true, message: '请输入门店名称', trigger: 'blur' },
+                    specTmpName: [
+                        { required: true, message: '请输入规格模板名称', trigger: 'blur' },
                     ],
-                    shopAccount: [
-                        { required: true, message: '请输入门店账号', trigger: 'blur' },
-                        { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
-                    ],
-                    shopPwd: [
-                        { required: true, message: '请输入门店密码', trigger: 'blur' },
-                        { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
-                    ],
-                    pwd: [
-                        { required: true, message: '请再次输入门店密码', trigger: 'blur' },
-                        { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
-                    ],
-                    shopLinkman: [
-                        { required: true, message: '请输入联系人姓名', trigger: 'blur' }
-                    ],
-                    shopPhone: [
-                        // { required: true, message: '请输入门店名称', trigger: 'blur' },
-                        { min: 11, max: 11, message: '手机格式不正确', trigger: 'blur' }
-                    ],
-                    shopTypeId: [
-                        { required: true, message: '请选择门店类型', trigger: 'blur' }
-                    ],
+                    specName: [
+                        { required: true, message: '请输入规格', trigger: 'blur' },
+                    ]
                 }
             }
         },
@@ -268,30 +175,41 @@
            this.init();
         },
         methods:{
-            // 获取门店列表
+            // 获取规格模板
             init(){
-                // let params = QS.stringify(this.shop);
-                this.$http.post('shop/shopList/').then(result => {
-                    this.shopList = result.data.shopList;
-                    // 初始化分页器
-                    this.initPage();
-
-                    // 获取分页数据
-                    this.currentPage = 1;
-                    this.getPageList(this.currentPage);
-                });
-                this.$http.post('shop/shopTypeList/').then(result => {
-                    this.shopTypeList = result.data;
-                });
-
-                this.$http.post('shop/shopNameList/').then(result => {
-                    this.shopNameList = result.data;
+                // let params = Qs.stringify(this.querySpecTmp);
+                this.$http.post('specTmp/showSpecTmp/').then(result => {
+                    let specTmpList = result.data.specTmpList;
+                    specTmpList.forEach((item,index) => {
+                        item.checked = false;
+                    })
+                    this.specTmpList = specTmpList;
                 });
             },
-            // 初始化分页器
-            initPage(){
-                this.totalCount = this.shopList.length;
-                this.currentPage = 1;
+            // 批量删除
+            batchDeleteSpecTmp(){
+
+            },
+            // 根据id删除规格模板
+            deleteSpecTmp(id){
+
+            },
+            dels(ids){
+                // 判断该规格模板下是否存在规格，是否被某个商品占用？
+
+                this.$http.post('specTmp/delSpecTmp','ids='+ids).then(result => {
+                    if (result.data.state){
+                        this.$message({
+                            type: 'success',
+                            message: '删除成功'
+                        });
+                    } else{
+                        this.$message({
+                            type: 'danger',
+                            message: '删除失败'
+                        });
+                    }
+                })
             },
             // 多条件查询
             searchShop(){
@@ -303,35 +221,6 @@
                     this.currentPage = 1;
                     this.getPageList(this.currentPage);
                 })
-            },
-            // 根据当前页码获取门店分页数据 pageNo 当前页码
-            getPageList(pageNo){
-                // 取消全选状态
-                this.checkAll = false;
-                this.checkedShops = [];
-                // 页面大小
-                let pageSize = this.pageSize;
-                // 进行数据截取
-                // 起始下标
-                let startIndex = (pageNo-1)*pageSize;
-                // 原始数据
-                let shopList = this.shopList;
-                // 分页数据
-                let pageList = [];
-                let pageCapacity = 0;
-                console.log('起始下标：'+startIndex);
-                for (let i = startIndex;i<shopList.length;i++){
-                    let shop = shopList[i];
-                    shop.checked = false;
-                    pageList.push(shop);
-                    pageCapacity++;
-                    // 判断是否装满当前页
-                    if (pageCapacity >= pageSize) {
-                        break;
-                    }
-                }
-               // console.log(shopPageList);
-                this.pageList = pageList;
             },
             // 新增规格内容
             addSpecDetail(){
@@ -362,34 +251,11 @@
                     });
                 });
             },
-            handleSizeChange(val) {
-                console.log(`每页 ${val} 条`);
-            },
-            // 当前页码改变
-            handleCurrentChange(val) {
-                this.getPageList(val);
-            },
             openAdd() {
                 this.showAdd = true;
             },
             closeAdd(){
                 this.showAdd = false;
-            },
-            // 打开批量修改窗口
-            openEdits(){
-                // 判断是否有选中的门店
-                if (this.checkedShops.length == 0){
-                    this.$message({
-                        showClose: true,
-                        type:'warning',
-                        message: '请选择要批量操作的数据'
-                    });
-                    return;
-                }
-              this.showEdits = true;
-            },
-            closeEdits(){
-                this.showEdits = false;
             },
             shopDetail(id){
                 // this.shop = this.shopPageList.filter(item => item.id == id)[0];
@@ -453,28 +319,11 @@
 
             },
             submitForm(formName) {
+                console.log(this.specStr);
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
-                        // 判断两次密码是否一致
-                        if (this.ruleForm.shopPwd!=this.ruleForm.pwd) return false;
-                        // 进行添加操作
-                        let params = Qs.stringify(this.ruleForm);
-                        this.$http.post('shop/addShop',params).then(result => {
-                            if (result.data.state){
-                                this.init();
-                                this.$message({
-                                    showClose:true,
-                                    type:'success',
-                                    message:'门店信息添加成功'
-                                })
-                            } else{
-                                this.$message({
-                                    showClose:true,
-                                    type:'danger',
-                                    message:'门店信息添加失败'
-                                })
-                            }
-                        })
+                        console.log(this.ruleForm);
+                        console.log(this.specName);
 
                     } else {
                         this.$message({

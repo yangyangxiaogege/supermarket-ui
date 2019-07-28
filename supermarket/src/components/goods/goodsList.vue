@@ -7,15 +7,18 @@
                         v-model="queryGoods.beginDate"
                         type="date"
                         size="small"
+                        value-format="yyyy/MM/dd"
                         placeholder="开始日期">
                 </el-date-picker>
                 <el-date-picker
                         v-model="queryGoods.endDate"
                         type="date"
                         size="small"
+                        value-format="yyyy/MM/dd"
                         placeholder="结束日期">
                 </el-date-picker>
                 <el-select v-model="queryGoods.goodsTypeId" filterable placeholder="全部商品类别" size="small">
+                    <el-option label="全部商品类别" value=""></el-option>
                     <el-option
                             v-for="item in goodsTypeList"
                             :key="item.goodsTypeName"
@@ -31,9 +34,9 @@
                 <el-button icon="glyphicon glyphicon-plus" size="small" @click="openAdd">新增商品信息</el-button>
                 <el-button icon="glyphicon glyphicon-edit" size="small" @click="openSort">编辑排序</el-button>
                 <el-button icon="glyphicon glyphicon-edit" size="small" @click="openEdits">批量修改</el-button>
-                <el-button icon="glyphicon glyphicon-edit" size="small" @click="dels">批量删除</el-button>
-                <el-button icon="glyphicon glyphicon-download-alt" size="small">导出excel</el-button>
-                <el-button icon="glyphicon glyphicon-refresh" size="small">刷新数据</el-button>
+                <el-button icon="glyphicon glyphicon-edit" size="small" @click="batchDeleteGoods">批量删除</el-button>
+                <el-button icon="glyphicon glyphicon-download-alt" size="small" @click="exportExcel">导出excel</el-button>
+                <el-button icon="glyphicon glyphicon-refresh" size="small" @click="refresh">刷新数据</el-button>
             </div>
             <!--数据-->
             <table class="my-tab table table-bordered">
@@ -59,8 +62,8 @@
                     <td>零售价:{{item.price}}批发价:{{item.wholePrice}}<br>进价:{{item.costPrice}}</td>
                     <td>{{item.goodsCount}}</td>
                     <td>
-                        <el-tag type="warning" size="small" @click="goodsDetail(shop.id)">详情</el-tag>
-                        <el-tag type="danger" size="small">删除</el-tag>
+                        <el-tag type="warning" size="small" @click="openDetail(item.id)">详情</el-tag>
+                        <el-tag type="danger" size="small" @click="deleteGoods(item.id)">删除</el-tag>
                     </td>
                 </tr>
                 </tbody>
@@ -102,23 +105,31 @@
                                     </el-select>
                                 </el-form-item>
                                 <el-form-item label="商品条码" prop="goodsCode">
-                                    <el-input v-model="ruleForm.goodsCode"></el-input>
+                                    <el-input v-model="ruleForm.goodsCode" @change="checkGoodsCode(ruleForm.goodsCode)"></el-input>
                                 </el-form-item>
                                 <el-form-item label="商品名称" prop="goodsName">
                                     <el-input v-model="ruleForm.goodsName"></el-input>
                                 </el-form-item>
                                 <el-form-item label="供应商" prop="providerId">
                                     <el-select v-model="ruleForm.providerId" filterable placeholder="请选择供应商" size="small">
-<!--                                        <el-option-->
-<!--                                                v-for="item in providerList"-->
-<!--                                                :key="item.providerName"-->
-<!--                                                :label="item.providerName"-->
-<!--                                                :value="item.id">-->
-<!--                                        </el-option>-->
+                                        <el-option
+                                                v-for="item in providerList"
+                                                :key="item.proName"
+                                                :label="item.proName"
+                                                :value="item.id">
+                                        </el-option>
                                     </el-select>
                                 </el-form-item>
                                 <el-form-item label="单位">
                                     <el-input v-model="ruleForm.unitId"></el-input>
+                                </el-form-item>
+                                <el-form-item label="规格" prop="specDetailId">
+                                    <el-cascader
+                                            :options="specTmpList"
+                                            v-model="ruleForm.specDetailId"
+                                            @change="handleSpecChange"
+                                    >
+                                    </el-cascader>
                                 </el-form-item>
                                 <el-form-item label="零售价" prop="price">
                                     <el-input v-model="ruleForm.price" placeholder="请输入商品零售价，单位（元）"></el-input>
@@ -135,17 +146,19 @@
                                 <el-form-item label="生产日期" prop="yieldDate">
                                     <el-date-picker
                                             v-model="ruleForm.yieldDate"
+                                            value-format="yyyy/MM/dd"
                                             align="right"
                                             type="date"
                                             placeholder="选择日期">
                                     </el-date-picker>
                                 </el-form-item>
-                                <el-form-item label="保质期(天)" prop="exporatopmDay">
-                                    <el-input-number v-model="ruleForm.exporatopmDay" :min="1" :max="100000"></el-input-number>
+                                <el-form-item label="保质期(天)" prop="expirationDay">
+                                    <el-input v-model="ruleForm.expirationDay"></el-input>
                                 </el-form-item>
                                 <el-form-item label="过期日期" prop="expirationDate">
                                     <el-date-picker
                                             v-model="ruleForm.expirationDate"
+                                            value-format="yyyy/MM/dd"
                                             align="right"
                                             type="date"
                                             placeholder="选择日期">
@@ -172,23 +185,23 @@
                             <h4 class="modal-title">商品排序</h4>
                         </div>
                         <div class="modal-body">
-                            <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+                            <el-form ref="ruleForm" label-width="100px" class="demo-ruleForm">
                                 <el-form-item label="排序方式" prop="shopTypeId">
-                                    <el-select v-model="ruleForm.shopTypeId" filterable placeholder="请选择排序方式" size="small">
-                                        <el-option label="商品编号"></el-option>
-                                        <el-option label="商品名称"></el-option>
-                                        <el-option label="商品加入日期"></el-option>
+                                    <el-select v-model="sort.sortName" filterable placeholder="请选择排序方式" size="small">
+                                        <el-option label="商品编号" value="g.id"></el-option>
+                                        <el-option label="商品名称" value="goods_name"></el-option>
+                                        <el-option label="商品库存" value="goods_count"></el-option>
+                                        <el-option label="商品零售价" value="price"></el-option>
                                     </el-select>
                                 </el-form-item>
-                                <el-form-item label="排序类别" prop="shopLinkman">
-                                    <el-radio  label="1">升序</el-radio>
-                                    <el-radio  label="2">降序</el-radio>
+                                <el-form-item label="排序类别">
+                                    <el-radio v-model="sort.sortType" label="asc">升序</el-radio>
+                                    <el-radio v-model="sort.sortType" label="desc">降序</el-radio>
                                 </el-form-item>
                             </el-form>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-default" @click="resetForm('ruleForm')">重置</button>
-                            <button type="button" class="btn btn-primary" @click="submitForm('ruleForm')">确定</button>
+                            <button type="button" class="btn btn-primary" @click="goodsSort">排序</button>
                         </div>
                     </div>
                 </div>
@@ -204,90 +217,117 @@
                             <h4 class="modal-title">批量修改</h4>
                         </div>
                         <div class="modal-body">
-                            <div class="my-edit-item">
-                                <el-checkbox v-model="checked"></el-checkbox>
-                                <el-select v-model="shop.shopTypeId" placeholder="请选择" size="small">
-                                    <el-option
-                                            v-for="item in shopTypes"
-                                            :key="item.shopTypeName"
-                                            :label="item.shopTypeName"
-                                            :value="item.id">
-                                    </el-option>
-                                </el-select>
-                            </div>
-                            <div class="my-edit-item">
-                                <el-checkbox v-model="checked"></el-checkbox>
-                                <el-radio v-model="radio" label="1">备选项</el-radio>
-                                <el-radio v-model="radio" label="2">备选项</el-radio>
-                            </div>
+                            <el-form>
+                                <el-form-item label="商品类型">
+                                    <el-select v-model="goods.goodsTypeId" filterable placeholder="请选择商品类型" size="small">
+                                        <el-option
+                                                v-for="item in goodsTypeList"
+                                                :key="item.goodsTypeName"
+                                                :label="item.goodsTypeName"
+                                                :value="item.id">
+                                        </el-option>
+                                    </el-select>
+                                </el-form-item>
+                            </el-form>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-default">Close</button>
-                            <button type="button" class="btn btn-primary">Save changes</button>
+                            <button type="button" class="btn btn-primary" @click="batchUpdateGoods(goods.goodsTypeId)">保存</button>
                         </div>
                     </div>
                 </div>
             </div>
         </transition>
-
-        <!--门店详情弹出框-->
+        <!--详情-->
         <transition>
             <div class="my-tanchukuang" v-if="showDetail">
                 <div>
                     <div class="my-modal modal-content">
                         <div class="modal-header">
                             <button type="button" class="close"><span aria-hidden="true" @click="closeDetail">×</span></button>
-                            <h4 class="modal-title">门店详情</h4>
+                            <h4 class="modal-title">商品详情</h4>
                         </div>
                         <div class="modal-body">
-                            <el-form ref="form" :model="form" label-width="80px">
-                                <el-form-item label="门店编码">
-                                    <el-tag>010258</el-tag>
+                            <el-form :model="goods" :rules="rules" ref="goodsForm" label-width="100px" class="demo-ruleForm">
+                                <el-form-item label="商品条码" prop="goodsCode">
+                                    <el-input v-model="goods.goodsCode" :disabled="true"></el-input>
                                 </el-form-item>
-                                <el-form-item label="创建时间">
-                                    <el-tag>2019-07-14 09:36:02</el-tag>
+                                <el-form-item label="商品类别" prop="goodsTypeId">
+                                    <el-select v-model="goods.goodsTypeId" filterable placeholder="请选择商品类别" size="small">
+                                        <el-option
+                                                v-for="item in goodsTypeList"
+                                                :key="item.goodsTypeName"
+                                                :label="item.goodsTypeName"
+                                                :value="item.id">
+                                        </el-option>
+                                    </el-select>
                                 </el-form-item>
-                                <el-form-item label="LOGO">
-                                    <img class="my-logo" src="../../resource/images/512×512-点png.png">
-                                    <span style="color: red;">图片分辨率:建议500*500</span>
+                                <el-form-item label="商品名称" prop="goodsName">
+                                    <el-input v-model="goods.goodsName"></el-input>
                                 </el-form-item>
-                                <el-form-item label="门店名称">
-                                    <el-input v-model="shop.shopName"></el-input>
+                                <el-form-item label="供应商" prop="providerId">
+                                    <el-select v-model="goods.providerId" filterable placeholder="请选择供应商" size="small">
+                                        <el-option
+                                                v-for="item in providerList"
+                                                :key="item.proName"
+                                                :label="item.proName"
+                                                :value="item.id">
+                                        </el-option>
+                                    </el-select>
                                 </el-form-item>
-                                <el-form-item label="联系人">
-                                    <el-input v-model="shop.shopLinkman"></el-input>
+                                <el-form-item label="单位">
+                                    <el-input v-model="goods.unitId"></el-input>
                                 </el-form-item>
-                                <el-form-item label="联系电话">
-                                    <el-input v-model="shop.shopPhone"></el-input>
+                                <el-form-item label="规格" prop="specDetailId">
+                                    <el-cascader
+                                            :options="specTmpList"
+                                            v-model="goods.specDetailId"
+                                            @change="handleSpecChange"
+                                    >
+                                    </el-cascader>
                                 </el-form-item>
-                                <el-form-item label="营业时间">
-                                    <el-col :span="11">
-                                        <el-date-picker type="date" placeholder="选择日期" v-model="shop.createDate" style="width: 100%;"></el-date-picker>
-                                    </el-col>
-                                    <el-col class="line" :span="2">至</el-col>
-                                    <el-col :span="11">
-                                        <el-time-picker type="fixed-time" placeholder="选择时间" v-model="shop.startDate" style="width: 100%;"></el-time-picker>
-                                    </el-col>
+                                <el-form-item label="库存">
+                                    <el-input v-model="goods.goodsCount" :disabled="true"></el-input>
                                 </el-form-item>
-                                <el-form-item label="门店公告">
-                                    <el-input type="textarea" v-model="shop.shopAdvice"></el-input>
+                                <el-form-item label="零售价" prop="price">
+                                    <el-input v-model="goods.price" placeholder="请输入商品零售价，单位（元）"></el-input>
                                 </el-form-item>
-                                <el-form-item label="门店地址">
-                                    <el-input v-model="shop.shopAddress"></el-input>
+                                <el-form-item label="批发价" prop="wholePrice">
+                                    <el-input v-model="goods.wholePrice" placeholder="请输入商品批发价，单位（元）"></el-input>
                                 </el-form-item>
-                                <el-form-item>
-                                    <el-button type="primary" @click="onSubmit">保存</el-button>
-                                    <el-button>取消</el-button>
+                                <el-form-item label="进价" prop="costPrice">
+                                    <el-input v-model="goods.costPrice" placeholder="请输入商品进货价，单位（元）"></el-input>
+                                </el-form-item>
+                                <el-form-item label="产地" prop="goodsAddress">
+                                    <el-input v-model="goods.goodsAddress"></el-input>
+                                </el-form-item>
+                                <el-form-item label="生产日期" prop="yieldDate">
+                                    <el-date-picker
+                                            v-model="goods.yieldDate"
+                                            value-format="yyyy/MM/dd"
+                                            align="right"
+                                            type="date"
+                                            placeholder="选择日期">
+                                    </el-date-picker>
+                                </el-form-item>
+                                <el-form-item label="保质期(天)" prop="expirationDay">
+                                    <el-input v-model="goods.expirationDay"></el-input>
+                                </el-form-item>
+                                <el-form-item label="过期日期" prop="expirationDate">
+                                    <el-date-picker
+                                            v-model="goods.expirationDate"
+                                            value-format="yyyy/MM/dd"
+                                            align="right"
+                                            type="date"
+                                            placeholder="选择日期">
+                                    </el-date-picker>
                                 </el-form-item>
                             </el-form>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-default">Close</button>
-                            <button type="button" class="btn btn-primary">Save changes</button>
+                            <button type="button" class="btn btn-primary" @click="updateGoods('goodsForm')">保存</button>
                         </div>
                     </div>
                 </div>
-
             </div>
         </transition>
     </div>
@@ -297,8 +337,10 @@
     import Qs from 'qs';
     export default {
         name: "goodsList",
+        inject:['reload'],
         data() {
             return {
+                goods:{},
                 // 查询商品条件
                 queryGoods:{},
                 // 商品列表
@@ -310,12 +352,21 @@
                 ],
                 // 商品类型
                 goodsTypeList:[{id:1,goodsTypeName:'内衣'},{id:2,goodsTypeName:'鞋包'}],
+                // 供应商列表
+                providerList:[],
+                // 商品规格
+                specTmpList:[],
                 // 选中的商品
                 checkedGoods:[],
                 // 分页数据
                 currentPage: 1,
                 totalCount:0,
                 pageSize:10,
+                // 排序
+                sort:{
+                  sortName:'g.id',
+                  sortType:'asc'
+                },
                 // 是否显示添加框
                 showAdd:false,
                 // 是否显示排序选择
@@ -328,40 +379,42 @@
                 checkAll:false,
                 // 添加商品的表单对象
                 ruleForm: {
-                    price:'',
-                    shopAccount:'',
-                    shopPwd:'',
-                    shopLinkman:'',
-                    shopPhone:'',
-                    shopTypeId:''
                 },
                 rules: {
+                    goodsTypeId:[
+                        { required: true, message: '请选择商品类型', trigger: 'blur' }
+                    ],
+                    goodsCode: [
+                        { required: true, message: '请输入商品条码', trigger: 'blur' },
+                    ],
+                    goodsName: [
+                        { required: true, message: '请输入商品名称', trigger: 'blur' },
+                    ],
+                    providerId: [
+                        { required: true, message: '请选择供应商', trigger: 'blur' },
+                    ],
+                    specDetailId: [
+                        { required: true, message: '请选择商品规格', trigger: 'blur' },
+                    ],
                     price: [
-                        { required: true, message: '请输入门店名称', trigger: 'blur' },
+                        { required: true, message: '请输入商品零售价', trigger: 'blur' },
                         { pattern:/(?!^0*(\.0{1,2})?$)^\d{1,13}(\.\d{1,2})?$/,message:'请输入合法金额',trigger:'blur'}
                     ],
-                    shopAccount: [
-                        { required: true, message: '请输入门店账号', trigger: 'blur' },
-                        { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
+                    wholePrice: [
+                        { required: true, message: '请输入商品批发价', trigger: 'blur' },
+                        { pattern:/(?!^0*(\.0{1,2})?$)^\d{1,13}(\.\d{1,2})?$/,message:'请输入合法金额',trigger:'blur'}
                     ],
-                    shopPwd: [
-                        { required: true, message: '请输入门店密码', trigger: 'blur' },
-                        { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
+                    costPrice: [
+                        { required: true, message: '请输入商品进价', trigger: 'blur' },
+                        { pattern:/(?!^0*(\.0{1,2})?$)^\d{1,13}(\.\d{1,2})?$/,message:'请输入合法金额',trigger:'blur'}
                     ],
-                    pwd: [
-                        { required: true, message: '请再次输入门店密码', trigger: 'blur' },
-                        { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
+                    yieldDate: [
+                        { required: true, message: '生产日期不能为空', trigger: 'blur' }
                     ],
-                    shopLinkman: [
-                        { required: true, message: '请输入联系人姓名', trigger: 'blur' }
-                    ],
-                    shopPhone: [
-                        // { required: true, message: '请输入门店名称', trigger: 'blur' },
-                        { min: 11, max: 11, message: '手机格式不正确', trigger: 'blur' }
-                    ],
-                    shopTypeId: [
-                        { required: true, message: '请选择门店类型', trigger: 'blur' }
-                    ],
+                    expirationDay: [
+                        { required: true, message: '保质期不能为空', trigger: 'blur' },
+                        { pattern:/^[1-9]\d*$/,message:'保质期为一个正整数',trigger:'blur'}
+                    ]
                 }
             }
         },
@@ -370,12 +423,9 @@
            this.init();
         },
         methods:{
-            // 打开排序选择
-            openSort(){
-                this.showSort = true;
-            },
-            closeSort(){
-                this.showSort = false;
+            // 刷新当前页面
+            refresh(){
+                this.reload();
             },
             // 获取商品列表
             init(){
@@ -426,8 +476,8 @@
             // 多条件查询
             searchGoods(){
                 let params = Qs.stringify(this.queryGoods);
-                this.$http.post('goods/goodsList',params).then(result => {
-                    this.goodsList = result.data.shopList;
+                this.$http.post('goods/findByCondition',params).then(result => {
+                    this.goodsList = result.data;
                     // 获取分页数据
                     this.initPage();
                     this.getPageList(this.currentPage);
@@ -443,8 +493,71 @@
             handleCurrentChange(val) {
                 this.getPageList(val);
             },
+            // 打开排序选择
+            openSort(){
+                this.showSort = true;
+            },
+            closeSort(){
+                this.showSort = false;
+            },
+            // 商品排序
+            goodsSort(){
+                let params = this.queryGoods;
+                params.sortName = this.sort.sortName;
+                params.sortType = this.sort.sortType;
+                this.$http.post('goods/findByCondition',Qs.stringify(params)).then(result => {
+                    this.goodsList = result.data;
+                    // 初始化分页器
+                    this.initPage();
+                    // 获取分页数据
+                    this.getPageList(this.currentPage);
+                    this.showSort = false;
+                })
+            },
+            // 获取商品规格
+            getSpecTmpList(){
+                // 查询商品规格
+                this.$http.post('specTmp/seSpecTmpAndSpecAndSd').then(result => {
+                    // 规格模板
+                    let specTmpList = result.data.specTmpList;
+                    // 规格
+                    let specList = result.data.specList;
+                    // 规格详情
+                    let sdList = result.data.sdList;
+                    // 遍历规格模板
+                    specTmpList.forEach((item, index) => {
+                        let specTmp = {label: item.specTmpName, value: item.specTmpName, id: item.id};
+                        specTmp.children = [];
+                        // 遍历规格，并和specTmp进行匹配
+                        specList.forEach((item, index) => {
+                            let spec = {label: item.specName, value: item.specName, id: item.id};
+                            spec.children = [];
+                            if (item.specTmpId == specTmp.id) {
+                                sdList.forEach((item, index) => {
+                                    let detail = {label: item.specDetailName, value: item.id};
+                                    if (item.specId == spec.id) {
+                                        spec.children.push(detail);
+                                    }
+                                });
+                                specTmp.children.push(spec);
+                            }
+                        });
+                        this.specTmpList.push(specTmp);
+                    })
+                })
+            },
             openAdd() {
+                this.ruleForm = {};
+                // 获取供应商列表
+                this.$http.post('provider/proList').then(result => {
+                    this.providerList = result.data.providerList;
+                });
+                // 获取商品规格
+                this.getSpecTmpList();
                 this.showAdd = true;
+            },
+            // 规格模板选中发生改变
+            handleSpecChange(value){
             },
             closeAdd(){
                 this.showAdd = false;
@@ -462,10 +575,31 @@
                 }
               this.showEdits = true;
             },
+            // 批量修改
+            batchUpdateGoods(goodsTypeId){
+                let ids = this.checkedGoods.join(',');
+                this.$http.post('goods/batchModifyGoods','ids='+ids+'&goodsTypeId='+goodsTypeId).then(result => {
+                    if (result.data.result){
+                        this.$message({
+                            showClose: true,
+                            type:'warning',
+                            message: '修改成功'
+                        });
+                        this.init();
+                        this.showEdits = false;
+                    } else{
+                        this.$message({
+                            showClose: true,
+                            type:'warning',
+                            message: '修改失败'
+                        });
+                    }
+                })
+            },
             closeEdits(){
                 this.showEdits = false;
             },
-            // 选中所有门店
+            // 选中所有商品
             handleCheckAllChange(val) {
                 //console.log(val);
                 if (val){
@@ -513,40 +647,141 @@
 
                 this.$forceUpdate();
             },
-            shopDetail(id){
-                this.shop = this.pageList.filter(item => item.id == id)[0];
-                this.showDetail = true;
+            openDetail(id){
+                // 获取供应商列表
+                this.$http.post('provider/proList').then(result => {
+                    this.providerList = result.data.providerList;
+                });
+                // 获取商品规格
+                this.getSpecTmpList();
+
+                this.$http.post('goods/findByCondition','id='+id).then(result => {
+                    let goods = result.data[0];
+                    goods.yieldDate = goods.yieldDate
+                    goods.specDetailId = [goods.spceTmpName,goods.specName,goods.specDetailId];
+                    this.goods = goods;
+                    this.showDetail = true;
+                })
+            },
+            // 保存更新
+            updateGoods(formName){
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        let specDetailId = this.goods.specDetailId[this.goods.specDetailId.length-1];
+                        this.goods.specDetailId = specDetailId;
+                        let params = Qs.stringify(this.goods);
+                        this.$http.post('goods/updateGoods',params).then(result => {
+                            if (result.data.result){
+                                this.$message({
+                                    showClose:true,
+                                    type:'success',
+                                    message:'保存成功'
+                                })
+                                // 重新进行数据初始化
+                                this.init();
+                            }else{
+                                this.$message({
+                                    showClose:true,
+                                    type:'danger',
+                                    message:'保存失败'
+                                })
+                            }
+                        })
+                    } else {
+                        this.$message({
+                            showClose:true,
+                            type:'warning',
+                            message:'请填写完整信息'
+                        })
+                        return false;
+                    }
+                });
             },
             closeDetail(){
                 this.showDetail = false;
             },
-            dels(){
-
+            // 删除商品批量
+            batchDeleteGoods(){
+                // 判断是否有选中的商品
+                if (this.checkedGoods.length == 0){
+                    this.$message({
+                        showClose:true,
+                        type:'warning',
+                        message:'请选择要进行操作的数据'
+                    })
+                    return;
+                }
+                let ids = this.checkedGoods.join(',');
+                this.dels(ids);
             },
+            // 根据id删除指定商品
+            deleteGoods(id){
+                this.dels(id);
+            },
+            dels(ids){
+                // 友情提示
+                let flag = window.confirm("确定删除编号为("+ids+")的数据吗？");
+
+                if (flag == false) return;
+                this.$http.post('goods/batchDeleteGoods','ids='+ids).then(result => {
+                    if (result.data.result){
+                        this.$message({
+                            showClose:true,
+                            type:'warning',
+                            message:'商品删除成功'
+                        })
+                        this.init();
+                    }else{
+                        this.$message({
+                            showClose:true,
+                            type:'warning',
+                            message:'商品删除失败'
+                        })
+                    }
+                })
+            },
+            // 导出数据
+            exportExcel(){
+                window.location.href = this.$store.state.baseUrl+'goods/exportGoods';
+            },
+            // 检查商品条码是否已经存在
+            checkGoodsCode(code){
+                this.$http.post('goods/findByGoodsCode','goodsCode='+code).then(result => {
+                    if (result.data.result){
+                        this.$message({
+                            showClose:true,
+                            type:'warning',
+                            message:'商品条码'+code+'已经存在'
+                        })
+                        this.ruleForm.goodsCode = '';
+                    }
+                })
+            },
+            // 添加商品信息
             submitForm(formName) {
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
-                        // 判断两次密码是否一致
-                        if (this.ruleForm.shopPwd!=this.ruleForm.pwd) return false;
-                        // 进行添加操作
+                        let specDetailId = this.ruleForm.specDetailId[this.ruleForm.specDetailId.length-1];
+                        this.ruleForm.specDetailId = specDetailId;
                         let params = Qs.stringify(this.ruleForm);
-                        this.$http.post('shop/addShop',params).then(result => {
-                            if (result.data.state){
-                                this.init();
+                        this.$http.post('goods/addGoods',params).then(result => {
+                            if (result.data.result){
                                 this.$message({
                                     showClose:true,
                                     type:'success',
-                                    message:'门店信息添加成功'
+                                    message:'添加成功'
                                 })
-                            } else{
+                                // 重新进行数据初始化
+                                this.ruleForm = {};
+                                this.init();
+                            }else{
                                 this.$message({
                                     showClose:true,
                                     type:'danger',
-                                    message:'门店信息添加失败'
+                                    message:'添加失败'
                                 })
                             }
                         })
-
                     } else {
                         this.$message({
                             showClose:true,
