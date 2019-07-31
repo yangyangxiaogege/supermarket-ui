@@ -1,68 +1,51 @@
 <template>
-    <div id="goodList">
+    <div id="cashierDeskList">
         <div class="my-content">
             <!--搜索区-->
             <div class="my-search">
-                <el-date-picker
-                        v-model="shop.beginDate"
-                        type="date"
-                        size="small"
-                        placeholder="开始日期">
-                </el-date-picker>
-                <el-date-picker
-                        v-model="shop.endDate"
-                        type="date"
-                        size="small"
-                        placeholder="结束日期">
-                </el-date-picker>
-                <el-select v-model="shop.shopTypeId" filterable placeholder="全部商品类别" size="small">
-                    <el-option
-                            v-for="item in shopTypeList"
-                            :key="item.shopTypeName"
-                            :label="item.shopTypeName"
-                            :value="item.id">
-                    </el-option>
+                <el-select v-model="queryCashierDesk.cashierState" filterable placeholder="全部收银台使用状态" size="small">
+                    <el-option label="全部收银台使用状态" value=""></el-option>
+                    <el-option label="正在使用" value="1"></el-option>
+                    <el-option label="已停用" value="0"></el-option>
                 </el-select>
-                <el-input v-model="shop.shopAccount" placeholder="商品条码/商品名称" style="width: 150px" size="small"></el-input>
-                <el-button type="primary" size="small" @click="searchShop">查询</el-button>
+                <el-input v-model="queryCashierDesk.condition" placeholder="收银台名称/店名" style="width: 150px" size="small"></el-input>
+                <el-button type="primary" size="small" @click="searchDesk">查询</el-button>
             </div>
             <!--工具-->
             <div class="my-tools">
-                <el-button icon="glyphicon glyphicon-plus" size="small" @click="openAdd">新增商品信息</el-button>
-                <el-button icon="glyphicon glyphicon-edit" size="small" @click="openEdits">编辑排序</el-button>
-                <el-button icon="glyphicon glyphicon-edit" size="small" @click="openEdits">批量修改</el-button>
-                <el-button icon="glyphicon glyphicon-edit" size="small" @click="openEdits">批量删除</el-button>
-                <el-button icon="glyphicon glyphicon-download-alt" size="small">导出excel</el-button>
-                <el-button icon="glyphicon glyphicon-refresh" size="small">刷新数据</el-button>
+                <el-button icon="glyphicon glyphicon-plus" size="small" @click="openAdd">新增收银台</el-button>
+                <el-button icon="glyphicon glyphicon-refresh" size="small" @click="refresh">刷新数据</el-button>
             </div>
             <!--数据-->
             <table class="my-tab table table-bordered">
                 <thead>
                 <tr>
-                    <th>
-                        <el-checkbox v-model="checkAll" @change="handleCheckAllChange"></el-checkbox>
-                    </th>
                     <th>序号</th>
-                    <th>商品</th>
-                    <th>价格</th>
-                    <th>库存</th>
-                    <th>状态</th>
+                    <th>收银台号</th>
+                    <th>收银台名称</th>
+                    <th>归属店铺</th>
+                    <th>使用状态</th>
                     <th>创建时间</th>
+                    <th>修改时间</th>
+                    <th>地址</th>
                     <th>操作</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr v-for="(item,index) in pageList" :key="item.shopName">
-                    <th scope="row"><el-checkbox v-model="item.checked" @change="handleCheckedShopsChange(item.checked,item.id)"></el-checkbox></th>
-                    <td>{{index+1}}</td>
-                    <td>{{item.shopName}}</td>
+                <tr v-for="(item,index) in pageList" :key="item.id.toString()">
+                     <td>{{index+1}}</td>
                     <td>{{item.id}}</td>
-                    <td>{{item.shopType.shopTypeName}}</td>
-                    <td>{{item.shopAccount}}</td>
-                    <td>{{item.shopLinkman}}</td>
+                    <td>{{item.cashierName}}</td>
+                    <td>{{item.shop.shopName}}</td>
+                    <td v-if="item.cashierState == 0">已停用</td>
+                    <td v-if="item.cashierState == 1">正在使用</td>
+                    <td>{{item.createDate}}</td>
+                    <td>{{item.modifyDate}}</td>
+                    <td>{{item.shop.shopAddress}}</td>
                     <td>
-                        <el-tag type="warning" size="small" @click="shopDetail(shop.id)">详情</el-tag>
-                        <el-tag type="danger" size="small">删除</el-tag>
+                        <el-tag type="warning" size="small" @click="openDetail(item.id)">详情</el-tag>
+                        <el-tag type="danger" size="small" @click="stopUse(item.id)">停用</el-tag>
+                        <el-tag type="success" size="small" @click="startUse(item.id)">启用</el-tag>
                     </td>
                 </tr>
                 </tbody>
@@ -82,51 +65,30 @@
             <div style="height: 200px"></div>
 
         </div>
-
-        <!--添加门店弹出框-->
+        <!--添加收银台-->
         <transition>
             <div class="my-tanchukuang" v-if="showAdd">
                 <div>
                     <div class="my-modal modal-content">
                         <div class="modal-header">
                             <button type="button" class="close"><span aria-hidden="true" @click="closeAdd">×</span></button>
-                            <h4 class="modal-title">新增门店信息</h4>
+                            <h4 class="modal-title">新增收银台</h4>
                         </div>
                         <div class="modal-body">
                             <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
-                                <el-form-item label="登陆账号" prop="shopAccount">
-                                    <el-input v-model="ruleForm.shopAccount"></el-input>
-                                </el-form-item>
-                                <el-form-item label="登陆密码" prop="shopPwd">
-                                    <el-input v-model="ruleForm.shopPwd"></el-input>
-                                </el-form-item>
-                                <el-form-item label="确认密码" prop="pwd">
-                                    <el-input v-model="ruleForm.pwd"></el-input>
-                                </el-form-item>
-                                <el-form-item label="门店名称" prop="shopName">
-                                    <el-input v-model="ruleForm.shopName"></el-input>
-                                </el-form-item>
-
-                                <el-form-item label="门店类别" prop="shopTypeId">
-                                    <el-select v-model="ruleForm.shopTypeId" filterable placeholder="全部门店类别" size="small">
+                                <el-form-item label="归属店铺" prop="goodsTypeId">
+                                    <el-select v-model="ruleForm.shopId" filterable size="small">
                                         <el-option
-                                                v-for="item in shopTypeList"
-                                                :key="item.shopTypeName"
-                                                :label="item.shopTypeName"
-                                                :value="item.id">
+                                                v-for="item in shopNameList"
+                                                :key="item.id.toString()"
+                                                :label="item.shopName"
+                                                :value="item.id.toString()">
                                         </el-option>
                                     </el-select>
                                 </el-form-item>
-                                <el-form-item label="联系人" prop="shopLinkman">
-                                    <el-input v-model="ruleForm.shopLinkman"></el-input>
+                                <el-form-item label="收银台名称" prop="cashierName">
+                                    <el-input v-model="ruleForm.cashierName"></el-input>
                                 </el-form-item>
-                                <el-form-item label="联系电话">
-                                    <el-input v-model="ruleForm.shopPhone"></el-input>
-                                </el-form-item>
-                                <!--<el-form-item>
-                                    <el-button type="primary" @click="submitForm('ruleForm')">立即创建</el-button>
-                                    <el-button @click="resetForm('ruleForm')">重置</el-button>
-                                </el-form-item>-->
                             </el-form>
                         </div>
                         <div class="modal-footer">
@@ -138,100 +100,36 @@
             </div>
         </transition>
 
-        <!--批量修改-->
-        <transition>
-            <div class="my-tanchukuang" v-if="showEdits">
-                <div>
-                    <div class="my-modal modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close"><span aria-hidden="true" @click="closeEdits">×</span></button>
-                            <h4 class="modal-title">批量修改</h4>
-                        </div>
-                        <div class="modal-body">
-                            <div class="my-edit-item">
-                                <el-checkbox v-model="checked"></el-checkbox>
-                                <el-select v-model="shop.shopTypeId" placeholder="请选择" size="small">
-                                    <el-option
-                                            v-for="item in shopTypes"
-                                            :key="item.shopTypeName"
-                                            :label="item.shopTypeName"
-                                            :value="item.id">
-                                    </el-option>
-                                </el-select>
-                            </div>
-                            <div class="my-edit-item">
-                                <el-checkbox v-model="checked"></el-checkbox>
-                                <el-radio v-model="radio" label="1">备选项</el-radio>
-                                <el-radio v-model="radio" label="2">备选项</el-radio>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-default">Close</button>
-                            <button type="button" class="btn btn-primary">Save changes</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </transition>
-
-        <!--门店详情弹出框-->
+        <!--详情-->
         <transition>
             <div class="my-tanchukuang" v-if="showDetail">
                 <div>
                     <div class="my-modal modal-content">
                         <div class="modal-header">
                             <button type="button" class="close"><span aria-hidden="true" @click="closeDetail">×</span></button>
-                            <h4 class="modal-title">门店详情</h4>
+                            <h4 class="modal-title">收银台详情</h4>
                         </div>
                         <div class="modal-body">
-                            <el-form ref="form" :model="form" label-width="80px">
-                                <el-form-item label="门店编码">
-                                    <el-tag>010258</el-tag>
+                            <el-form :model="cashierDesk" :rules="rules" ref="cashierDesk" label-width="100px" class="demo-ruleForm">
+                                <el-form-item label="收银台号">
+                                    <el-tag>{{cashierDesk.id}}</el-tag>
                                 </el-form-item>
-                                <el-form-item label="创建时间">
-                                    <el-tag>2019-07-14 09:36:02</el-tag>
+                                <el-form-item label="归属店铺">
+                                    <el-input :value="cashierDesk.shop.shopName" :disabled="true"></el-input>
                                 </el-form-item>
-                                <el-form-item label="LOGO">
-                                    <img class="my-logo" src="../../resource/images/512×512-点png.png">
-                                    <span style="color: red;">图片分辨率:建议500*500</span>
+                                <el-form-item label="收银台名称" prop="cashierName">
+                                    <el-input v-model="cashierDesk.cashierName"></el-input>
                                 </el-form-item>
-                                <el-form-item label="门店名称">
-                                    <el-input v-model="shop.shopName"></el-input>
-                                </el-form-item>
-                                <el-form-item label="联系人">
-                                    <el-input v-model="shop.shopLinkman"></el-input>
-                                </el-form-item>
-                                <el-form-item label="联系电话">
-                                    <el-input v-model="shop.shopPhone"></el-input>
-                                </el-form-item>
-                                <el-form-item label="营业时间">
-                                    <el-col :span="11">
-                                        <el-date-picker type="date" placeholder="选择日期" v-model="shop.createDate" style="width: 100%;"></el-date-picker>
-                                    </el-col>
-                                    <el-col class="line" :span="2">至</el-col>
-                                    <el-col :span="11">
-                                        <el-time-picker type="fixed-time" placeholder="选择时间" v-model="shop.startDate" style="width: 100%;"></el-time-picker>
-                                    </el-col>
-                                </el-form-item>
-                                <el-form-item label="门店公告">
-                                    <el-input type="textarea" v-model="shop.shopAdvice"></el-input>
-                                </el-form-item>
-                                <el-form-item label="门店地址">
-                                    <el-input v-model="shop.shopAddress"></el-input>
-                                </el-form-item>
-                                <el-form-item>
-                                    <el-button type="primary" @click="onSubmit">保存</el-button>
-                                    <el-button>取消</el-button>
+                                <el-form-item label="地址">
+                                    <el-input :value="cashierDesk.shop.shopAddress" :disabled="true"></el-input>
                                 </el-form-item>
                             </el-form>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-default">Close</button>
-                            <button type="button" class="btn btn-primary">Save changes</button>
+                            <button type="button" class="btn btn-primary" @click="updateCashierDesk('cashierDesk')">保存</button>
                         </div>
                     </div>
                 </div>
-
             </div>
         </transition>
     </div>
@@ -240,270 +138,217 @@
 <script>
     import Qs from 'qs';
     export default {
-        name: "shopList",
+        name: "cashierDeskList",
+        inject:['reload'],
         data() {
             return {
-                shop:{
-                    id:'',
-                    shopName:'',
-                    beginDate:'',
-                    endDate:'',
-                    shopTypeId:'',
-                    shopTypeName:'',
-                    shopAccount:'',
-                    shopLinkman:'',
-                    shopPhone:'',
-                    shopAddress:'',
-                    shopAdvice:''
-                },
-                // 门店列表
-                shopList:[],
-                // 门店分页数据
+                cashierDesk:{},
+                // 查询商品条件
+                queryCashierDesk:{},
+                // 收银台列表
+                cashierList:[],
+                // 收银台分页数据
                 pageList:[
-                    {id:'1001',shopName:'厦门沃尔玛',checked:false,shopType:{shopTypeName:'a'},shopAccount:'',shopLinkman:'',shopPhone:'',shopAddress:'',createdDate:''},
-                    {id:'1002',shopName:'阿里巴巴',checked:false,shopType:{shopTypeName:'a'},shopAccount:'',shopLinkman:'',shopPhone:'',shopAddress:'',createdDate:''}
-                    ],
-                // 门店类型
-                shopTypeList:[],
-                // 门店名称列表
+                ],
+                // 归属门店
                 shopNameList:[],
-                // 选中的门店
-                checkedShops:[],
                 // 分页数据
                 currentPage: 1,
                 totalCount:0,
                 pageSize:10,
                 // 是否显示添加框
                 showAdd:false,
-                // 是否显示批量修改
+                // 是否显示排序选择
                 showEdits:false,
+                // 是否显示详情
                 showDetail:false,
-                // 是否选中所有
-                checkAll:false,
-                checked:false,
-                radio:'1',
-                // 添加表单
+                // 添加收银台的表单对象
                 ruleForm: {
-                    shopName:'',
-                    shopAccount:'',
-                    shopPwd:'',
-                    shopLinkman:'',
-                    shopPhone:'',
-                    shopTypeId:''
                 },
                 rules: {
-                    shopName: [
-                        { required: true, message: '请输入门店名称', trigger: 'blur' },
-                    ],
-                    shopAccount: [
-                        { required: true, message: '请输入门店账号', trigger: 'blur' },
-                        { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
-                    ],
-                    shopPwd: [
-                        { required: true, message: '请输入门店密码', trigger: 'blur' },
-                        { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
-                    ],
-                    pwd: [
-                        { required: true, message: '请再次输入门店密码', trigger: 'blur' },
-                        { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
-                    ],
-                    shopLinkman: [
-                        { required: true, message: '请输入联系人姓名', trigger: 'blur' }
-                    ],
-                    shopPhone: [
-                        // { required: true, message: '请输入门店名称', trigger: 'blur' },
-                        { min: 11, max: 11, message: '手机格式不正确', trigger: 'blur' }
-                    ],
-                    shopTypeId: [
-                        { required: true, message: '请选择门店类型', trigger: 'blur' }
-                    ],
+                    cashierName:[
+                        { required: true, message: '请输入收银台名称', trigger: 'blur' }
+                    ]
                 }
             }
         },
         created(){
             // 初始化
-           this.init();
+            this.init();
         },
         methods:{
-            // 获取门店列表
+            // 刷新当前页面
+            refresh(){
+                this.reload();
+            },
+            // 获取商品列表
             init(){
-                // let params = QS.stringify(this.shop);
-                this.$http.post('shop/shopList/').then(result => {
-                    this.shopList = result.data.shopList;
+                this.$http.post('cashierDesk/findByCondition/').then(result => {
+                    this.cashierList = result.data;
                     // 初始化分页器
                     this.initPage();
-
                     // 获取分页数据
-                    this.currentPage = 1;
                     this.getPageList(this.currentPage);
                 });
-                this.$http.post('shop/shopTypeList/').then(result => {
-                    this.shopTypeList = result.data;
-                });
-
-                this.$http.post('shop/shopNameList/').then(result => {
-                    this.shopNameList = result.data;
+                // 获取商品类型
+                this.$http.post('goodsType/findByCondition/').then(result => {
+                    this.goodsTypeList = result.data;
                 });
             },
             // 初始化分页器
             initPage(){
-                this.totalCount = this.shopList.length;
+                this.totalCount = this.cashierList.length;
                 this.currentPage = 1;
-            },
-            // 多条件查询
-            searchShop(){
-                let params = Qs.stringify(this.shop);
-                this.$http.post('shop/shopList',params).then(result => {
-                    this.shopList = result.data.shopList;
-
-                    // 获取分页数据
-                    this.currentPage = 1;
-                    this.getPageList(this.currentPage);
-                })
             },
             // 根据当前页码获取门店分页数据 pageNo 当前页码
             getPageList(pageNo){
-                // 取消全选状态
-                this.checkAll = false;
-                this.checkedShops = [];
                 // 页面大小
                 let pageSize = this.pageSize;
                 // 进行数据截取
                 // 起始下标
                 let startIndex = (pageNo-1)*pageSize;
                 // 原始数据
-                let shopList = this.shopList;
+                let cashierList = this.cashierList;
                 // 分页数据
                 let pageList = [];
                 let pageCapacity = 0;
-                console.log('起始下标：'+startIndex);
-                for (let i = startIndex;i<shopList.length;i++){
-                    let shop = shopList[i];
-                    shop.checked = false;
-                    pageList.push(shop);
+                for (let i = startIndex;i<cashierList.length;i++){
+                    let goods = cashierList[i];
+                    goods.checked = false;
+                    pageList.push(goods);
                     pageCapacity++;
                     // 判断是否装满当前页
                     if (pageCapacity >= pageSize) {
                         break;
                     }
                 }
-               // console.log(shopPageList);
                 this.pageList = pageList;
             },
+            // 多条件查询
+            searchDesk(){
+                let params = Qs.stringify(this.queryCashierDesk);
+                this.$http.post('cashierDesk/findByCondition',params).then(result => {
+                    this.cashierList = result.data;
+                    // 获取分页数据
+                    this.initPage();
+                    this.getPageList(this.currentPage);
+                })
+            },
+            // 当前页面大小发生改变
             handleSizeChange(val) {
-                console.log(`每页 ${val} 条`);
+                this.pageSize = val;
+                this.currentPage = 1;
+                this.getPageList(this.currentPage);
             },
             // 当前页码改变
             handleCurrentChange(val) {
                 this.getPageList(val);
             },
             openAdd() {
-                this.showAdd = true;
+                this.ruleForm = {shopId:sessionStorage.getItem("shopId")};
+                // 获取门店
+                this.$http.post('shop/shopNameList').then(result => {
+                    this.shopNameList = result.data;
+                    this.showAdd = true;
+                });
             },
             closeAdd(){
                 this.showAdd = false;
             },
-            // 打开批量修改窗口
-            openEdits(){
-                // 判断是否有选中的门店
-                if (this.checkedShops.length == 0){
-                    this.$message({
-                        showClose: true,
-                        type:'warning',
-                        message: '请选择要批量操作的数据'
-                    });
-                    return;
-                }
-              this.showEdits = true;
+            openDetail(id){
+                // 获取收银台详情
+                this.$http.post('cashierDesk/findById','id='+id).then(result => {
+                    this.cashierDesk = result.data;
+                    this.showDetail = true;
+                });
+
             },
-            closeEdits(){
-                this.showEdits = false;
-            },
-            shopDetail(id){
-                this.shop = this.shopPageList.filter(item => item.id == id)[0];
-                this.showDetail = true;
+            // 保存更新
+            updateCashierDesk(formName){
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        this.$http.post('cashierDesk/modifyCash','id='+this.cashierDesk.id+'&cashierName='+this.cashierDesk.cashierName).then(result => {
+                            if (result.data.result){
+                                this.$message({
+                                    showClose:true,
+                                    type:'success',
+                                    message:'保存成功'
+                                })
+                                // 重新进行数据初始化
+                                this.init();
+                            }else{
+                                this.$message({
+                                    showClose:true,
+                                    type:'danger',
+                                    message:'保存失败'
+                                })
+                            }
+                        })
+                    } else {
+                        this.$message({
+                            showClose:true,
+                            type:'warning',
+                            message:'请填写完整信息'
+                        })
+                        return false;
+                    }
+                });
             },
             closeDetail(){
                 this.showDetail = false;
             },
-            // 选中所有门店
-            handleCheckAllChange(val) {
-                //console.log(val);
-                if (val){
-                    // 选中所有
-                    this.checkedShops = [];
-                    this.shopPageList.forEach((item,index) => {
-                        item.checked = true;
-                        this.checkedShops.push(item.id);
-                    })
-                } else{
-                    this.shopPageList.forEach((item,index) => {
-                        item.checked = false;
-                        this.checkedShops = [];
-                    })
-                }
-                // this.shopPageList = this.shopPageList;
-                // 强制更新
-                this.$forceUpdate();
-                console.log(this.checkedShops);
+            // 停用收银台
+            stopUse(id){
+              this.updateCashierState(id,0)
             },
-            // 门店选中状态发生改变
-            handleCheckedShopsChange(val,id) {
-                let shop = {};
-                this.shopPageList.forEach((item,index) => {
-                    if (item.id == id){
-                        item.checked = val;
-                        shop = item;
+            // 启用收银台
+            startUse(id){
+              this.updateCashierState(id,1);
+            },
+            // 修改收银台状态
+            updateCashierState(id,state){
+                // 启用 停用
+                this.$http.post('cashierDesk/modifyCash','id='+id+'&cashierState='+state).then(result => {
+                    if (result.data.result){
+                        this.$message({
+                            showClose:true,
+                            type:'success',
+                            message:'状态修改成功'
+                        })
+                        // 重新进行数据初始化
+                        this.init();
+                    }else{
+                        this.$message({
+                            showClose:true,
+                            type:'danger',
+                            message:'状态修改失败'
+                        })
                     }
                 })
-                //console.log(shop);
-                //shop.checked = val;
-                if (shop.checked){
-                    // 添加到选中的列表中
-                    this.checkedShops.push(shop.id);
-                }else{
-                    this.checkedShops.forEach((item,index) => {
-                        if (item == id){
-                            this.checkedShops.splice(index,1);
-                        }
-                    })
-                }
-
-                // 判断是否全部选中
-                if (this.checkedShops.length == this.shopPageList.length){
-                    this.checkAll = true;
-                } else{
-                    this.checkAll = false;
-                }
-
-                this.$forceUpdate();
-                // console.log(this.checkedShops);
-
             },
+            // 添加商品信息
             submitForm(formName) {
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
-                        // 判断两次密码是否一致
-                        if (this.ruleForm.shopPwd!=this.ruleForm.pwd) return false;
-                        // 进行添加操作
                         let params = Qs.stringify(this.ruleForm);
-                        this.$http.post('shop/addShop',params).then(result => {
-                            if (result.data.state){
-                                this.init();
+                        this.$http.post('cashierDesk/addCash',params).then(result => {
+                            if (result.data.result){
                                 this.$message({
                                     showClose:true,
                                     type:'success',
-                                    message:'门店信息添加成功'
+                                    message:'添加成功'
                                 })
-                            } else{
+                                // 重新进行数据初始化
+                                this.ruleForm = {shopId:sessionStorage.getItem("shopId")};
+                                this.init();
+                            }else{
                                 this.$message({
                                     showClose:true,
                                     type:'danger',
-                                    message:'门店信息添加失败'
+                                    message:'添加失败'
                                 })
                             }
                         })
-
                     } else {
                         this.$message({
                             showClose:true,
@@ -522,7 +367,7 @@
 </script>
 
 <style scoped lang="less">
-    #goodList{
+    #cashierDeskList{
         .el-tag{
             &:hover{
                 cursor: pointer;
@@ -554,6 +399,7 @@
             left: 0;
             background-color: rgba(0,0,0,0.5);
             border: 15px solid white;
+            z-index: 1000;
             .my-modal{
                 overflow: auto;
                 height: 404px;

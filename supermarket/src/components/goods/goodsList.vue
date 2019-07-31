@@ -4,20 +4,20 @@
             <!--搜索区-->
             <div class="my-search">
                 <el-date-picker
-                        v-model="queryGoods.beginDate"
+                        v-model="queryCashierDesk.beginDate"
                         type="date"
                         size="small"
                         value-format="yyyy/MM/dd"
                         placeholder="开始日期">
                 </el-date-picker>
                 <el-date-picker
-                        v-model="queryGoods.endDate"
+                        v-model="queryCashierDesk.endDate"
                         type="date"
                         size="small"
                         value-format="yyyy/MM/dd"
                         placeholder="结束日期">
                 </el-date-picker>
-                <el-select v-model="queryGoods.goodsTypeId" filterable placeholder="全部商品类别" size="small">
+                <el-select v-model="queryCashierDesk.goodsTypeId" filterable placeholder="全部商品类别" size="small">
                     <el-option label="全部商品类别" value=""></el-option>
                     <el-option
                             v-for="item in goodsTypeList"
@@ -26,7 +26,7 @@
                             :value="item.id">
                     </el-option>
                 </el-select>
-                <el-input v-model="queryGoods.condition" placeholder="商品条码/商品名称" style="width: 150px" size="small"></el-input>
+                <el-input v-model="queryCashierDesk.condition" placeholder="商品条码/商品名称" style="width: 150px" size="small"></el-input>
                 <el-button type="primary" size="small" @click="searchGoods">查询</el-button>
             </div>
             <!--工具-->
@@ -342,7 +342,7 @@
             return {
                 goods:{},
                 // 查询商品条件
-                queryGoods:{},
+                queryCashierDesk:{},
                 // 商品列表
                 goodsList:[],
                 // 商品分页数据
@@ -475,7 +475,7 @@
             },
             // 多条件查询
             searchGoods(){
-                let params = Qs.stringify(this.queryGoods);
+                let params = Qs.stringify(this.queryCashierDesk);
                 this.$http.post('goods/findByCondition',params).then(result => {
                     this.goodsList = result.data;
                     // 获取分页数据
@@ -502,7 +502,7 @@
             },
             // 商品排序
             goodsSort(){
-                let params = this.queryGoods;
+                let params = this.queryCashierDesk;
                 params.sortName = this.sort.sortName;
                 params.sortType = this.sort.sortType;
                 this.$http.post('goods/findByCondition',Qs.stringify(params)).then(result => {
@@ -549,7 +549,7 @@
             openAdd() {
                 this.ruleForm = {};
                 // 获取供应商列表
-                this.$http.post('provider/proList').then(result => {
+                this.$http.post('provider/proList','shopId='+sessionStorage.getItem("shopId")+'&proStatus=1').then(result => {
                     this.providerList = result.data.providerList;
                 });
                 // 获取商品规格

@@ -5,7 +5,7 @@
         </div>
         <div class="my-tools">
             <el-button icon="glyphicon glyphicon-plus" size="small" @click="add">新增商品类别</el-button>
-            <el-button icon="glyphicon glyphicon-trash" size="small" style="color: red;" @click="batchDeleteGoodsType">批量删除</el-button>
+            <el-button icon="glyphicon glyphicon-trash" size="small" style="color: red;" @click="batchDeleteLevelType">批量删除</el-button>
             <el-button icon="glyphicon glyphicon-refresh" size="small" @click="refresh">刷新数据</el-button>
         </div>
         <table class="my-tab table table-bordered">
@@ -156,7 +156,7 @@
                 });
             },
             // 批量删除
-            batchDeleteGoodsType(){
+            batchDeleteLevelType(){
                 // 判断是否有选中数据
                 if (this.checkedGoodsType.length == 0){
                     this.$message({

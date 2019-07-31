@@ -28,6 +28,26 @@ const navMenu = [
 			{index:"3-1",name:"会员列表",routerName:"memberList",icon:"el-icon-tickets"},
 			{index:"3-2",name:"会员等级",routerName:"memberLevel",icon:"el-icon-tickets"}
 		]
+	},
+	{
+		index:"4",
+		name:"收银管理",
+		icon:"el-icon-phone",
+		sub:[
+			{index:"4-1",name:"收银台",routerName:"cashierDesk",icon:"el-icon-tickets"},
+			{index:"4-2",name:"收银单",routerName:"ticket",icon:"el-icon-tickets"}
+		]
+	},
+	{
+		index:"5",
+		name:"采购管理",
+		icon:"el-icon-phone",
+		sub:[
+			{index:"5-1",name:"供应商列表",routerName:"providerList",icon:"el-icon-tickets"},
+			{index:"5-2",name:"采购订单",routerName:"providerList",icon:"el-icon-tickets"},
+			{index:"5-3",name:"采购收货单",routerName:"providerList",icon:"el-icon-tickets"},
+			{index:"5-4",name:"采购退货单",routerName:"providerList",icon:"el-icon-tickets"},
+		]
 	}
 ]
 

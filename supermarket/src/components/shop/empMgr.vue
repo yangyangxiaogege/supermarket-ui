@@ -48,7 +48,7 @@
                     <td>{{emp.shop.shopName}}</td>
                     <td>{{emp.empAccount}}</td>
                     <td>{{emp.empName}}</td>
-                    <td>{{emp.roles.roleName}}</td>
+                    <td>{{emp.roleName}}</td>
                     <td>
                         <span v-if="emp.empStatus == 0">正常</span>
                         <span v-if="emp.empStatus == 1">休息</span>
@@ -282,7 +282,7 @@
                     this.getPageList(this.currentPage);
                 })
             },
-            // 根据当前页码获取门店分页数据 pageNo 当前页码
+            // 根据当前页码获取员工分页数据 pageNo 当前页码
             getPageList(pageNo){
                 // 页面大小
                 let pageSize = this.pageSize;
@@ -294,9 +294,14 @@
                 // 分页数据
                 let pageList = [];
                 let pageCapacity = 0;
-                console.log('起始下标：'+startIndex);
                 for (let i = startIndex;i<empList.length;i++){
-                    pageList.push(empList[i]);
+                    let emp = empList[i];
+                    if (emp.roles == null){
+                        emp.roleName = '未设置';
+                    } else{
+                        emp.roleName = emp.roles.roleName;
+                    }
+                    pageList.push(emp);
                     pageCapacity++;
                     // 判断是否装满当前页
                     if (pageCapacity >= pageSize) {

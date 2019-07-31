@@ -54,18 +54,7 @@
        inject:['reload'],
         data() {
             return {
-                shop:{
-                  id:'1',
-                  shopName:'洋洋便利店',
-                  shopAccount:'yangyangxiaogege',
-                  shopAddress:'龙溪芳村大道东',
-                  shopLinkman:'洋洋',
-                  shopAdvice:'这是最牛逼的店',
-                  shopPhone:'18680631567',
-                  shopHours:'8:30-21:30',
-                  createDate:'2019-07-23',
-                    shopLogo:'',
-                },
+                shop:{},
                 rules:{
                     shopName:[
                         { required: true, message: '请输入门店名称', trigger: 'blur' }
@@ -92,8 +81,8 @@
             },
             init(){
                 // 获取本店信息
-                this.$http.post('employee/selectshop','id='+2).then(result => {
-                    let shop = result.data.currentshop;
+                this.$http.post('employee/selectshop','id='+sessionStorage.getItem('shopId')).then(result => {
+                    let shop = result.data.shopListByEmpId;
                     if (shop.shopHours != null && shop.shopHours != ''){
                         let shopHours = shop.shopHours.split('-');
                         let begin = shopHours[0].split(':');

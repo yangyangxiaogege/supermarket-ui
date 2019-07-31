@@ -49,8 +49,8 @@
         name: "login",
         data(){
             return {
-                empAccount:'',
-                empPwd:''
+                empAccount:'linjiuge',
+                empPwd:'123456'
             }
         },
         methods:{
@@ -59,24 +59,23 @@
                 if (this.empAccount == '' || this.empPwd == ''){
                     this.$message({
                         showClose: true,
-                        type:'error',
+                        type:'warning',
                         message: '账号或密码不能为空'
                     });
                     return;
                 }
                 let postData = QS.stringify({empAccount:this.empAccount,empPwd:this.empPwd});
-                console.log(postData);
                 this.$http.post('employee/login',postData).then(result => {
-                    console.log(result);
                     // 登陆成功
-                    if (result.data.state == true){
-                        sessionStorage.setItem("userCode","success")
+                    if (result.data.state){
+                        sessionStorage.setItem("empId",result.data.empId);
+                        sessionStorage.setItem("shopId",result.data.shopId);
                         this.$router.push({name:"home"})
                     }else{
                         this.$message({
                             showClose: true,
                             type:'error',
-                            message: result.data.message
+                            message: '账号或密码有误'
                         });
                     }
                 })
@@ -106,6 +105,11 @@
             }
         }
         .main{
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 60px;
+            bottom: 60px;
             min-height: 505px;
             background: #5EB0FA;
             display: flex;
@@ -136,6 +140,10 @@
             }
         }
         .footer{
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
             height: 60px;
             background-color: gray;
         }

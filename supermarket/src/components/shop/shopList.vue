@@ -68,7 +68,7 @@
                     <td>{{index+1}}</td>
                     <td>{{item.shopName}}</td>
                     <td>{{item.id}}</td>
-                    <td>{{item.shopType.shopTypeName}}</td>
+                    <td>{{item.shopTypeName}}</td>
                     <td>{{item.shopAccount}}</td>
                     <td>{{item.shopLinkman}}</td>
                     <td>{{item.shopPhone}}</td>
@@ -393,6 +393,11 @@
                 for (let i = startIndex;i<shopList.length;i++){
                     let shop = shopList[i];
                     shop.checked = false;
+                    if (shop.shopType != null){
+                        shop.shopTypeName = shop.shopType.shopTypeName;
+                    } else{
+                        shop.shopTypeName = '未设置';
+                    }
                     pageList.push(shop);
                     pageCapacity++;
                     // 判断是否装满当前页

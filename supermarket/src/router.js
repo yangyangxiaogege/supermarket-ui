@@ -23,6 +23,11 @@ import goodsSpec from './components/goods/goodsSpec.vue';
 // 导入member模块
 import memberList from './components/member/memberList.vue';
 import memberLevel from './components/member/memberLevel.vue';
+// 导入cashierDest 模板
+import cashierDesk from './components/cashierDesk/cashierDeskList.vue';
+import ticket from './components/cashierDesk/ticket.vue';
+// 导入purchase 模块
+import providerList from './components/purchase/providerList.vue';
 
 const router = new VueRouter({
   //  mode:'history',
@@ -52,30 +57,33 @@ const router = new VueRouter({
                 {path:'goodsType',component:goodsType,name:'goodsType'},
                 {path:'goodsSpec',component:goodsSpec,name:'goodsSpec'},
                 {path:'memberList',component:memberList,name:'memberList'},
-                {path:'memberLevel',component:memberLevel,name:'memberLevel'}
+                {path:'memberLevel',component:memberLevel,name:'memberLevel'},
+                {path:'cashierDesk',component:cashierDesk,name:'cashierDesk'},
+                {path:'ticket',component:ticket,name:'ticket'},
+                {path:'providerList',component:providerList,name:'providerList'}
             ]
         },
     ]
 });
 
 // 路由验证
-// router.beforeEach((to,from,next) => {
-//     // 判断是否需要进行拦截验证
-//     if (to.meta.noAuth == true){
-//         // 不需要进行拦截
-//         next();
-//     }else{
-//         // 验证有没有进行登陆
-//         if (sessionStorage.getItem('userCode') == null) {
-//             // 需要先进性登陆
-//             alert('请先进行登陆');
-//             next({
-//                 path:'/login'
-//             })
-//         }else{
-//             next();
-//         }
-//     }
-// });
+router.beforeEach((to,from,next) => {
+    // 判断是否需要进行拦截验证
+    if (to.meta.noAuth == true){
+        // 不需要进行拦截
+        next();
+    }else{
+        // 验证有没有进行登陆
+        if (sessionStorage.getItem('empId') == null) {
+            // 需要先进性登陆
+            alert('请先进行登陆');
+            next({
+                path:'/login'
+            })
+        }else{
+            next();
+        }
+    }
+});
 
 export default router;
