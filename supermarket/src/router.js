@@ -28,6 +28,11 @@ import cashierDesk from './components/cashierDesk/cashierDeskList.vue';
 import ticket from './components/cashierDesk/ticket.vue';
 // 导入purchase 模块
 import providerList from './components/purchase/providerList.vue';
+import orderList from './components/purchase/orderList.vue';
+import invoiceList from './components/purchase/invoiceList.vue';
+import rollbackList from './components/purchase/rollbackList.vue';
+// 导入wholesale模块
+import customerList from './components/wholesale/customerList.vue';
 
 const router = new VueRouter({
   //  mode:'history',
@@ -60,7 +65,11 @@ const router = new VueRouter({
                 {path:'memberLevel',component:memberLevel,name:'memberLevel'},
                 {path:'cashierDesk',component:cashierDesk,name:'cashierDesk'},
                 {path:'ticket',component:ticket,name:'ticket'},
-                {path:'providerList',component:providerList,name:'providerList'}
+                {path:'providerList',component:providerList,name:'providerList'},
+                {path:'orderList',component:orderList,name:'orderList'},
+                {path:'invoiceList',component:invoiceList,name:'invoiceList'},
+                {path:'rollbackList',component:rollbackList,name:'rollbackList'},
+                {path:'customerList',component:customerList,name:'customerList'}
             ]
         },
     ]

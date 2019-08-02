@@ -1,50 +1,42 @@
 <template>
-    <div id="providerList">
+    <div id="customerList">
         <div class="my-content">
             <!--搜索区-->
             <div class="my-search">
-                <el-input v-model="queryProvider.condition" placeholder="供应商名称/联系人/联系电话/地址" style="width: 250px" size="small"></el-input>
-                <el-button type="primary" size="small" @click="searchProvider">查询</el-button>
+                <el-input v-model="queryCustomer.condition" placeholder="客户名称/联系人/员工名称//地址" style="width: 250px" size="small"></el-input>
+                <el-button type="primary" size="small" @click="searchCustomer">查询</el-button>
             </div>
             <!--工具-->
             <div class="my-tools">
                 <el-button icon="glyphicon glyphicon-plus" size="small" @click="openAdd">新增供应商</el-button>
-                <el-button icon="glyphicon glyphicon-edit" size="small" @click="batchFrozenProvider">冻结供应商</el-button>
-                <el-button icon="glyphicon glyphicon-edit" size="small" @click="batchThawProvider">解冻供应商</el-button>
                 <el-button icon="glyphicon glyphicon-refresh" size="small" @click="refresh">刷新数据</el-button>
             </div>
             <!--数据-->
             <table class="my-tab table table-bordered">
                 <thead>
                 <tr>
-                    <th>
-                        <el-checkbox v-model="checkAll" @change="handleCheckAllChange"></el-checkbox>
-                    </th>
                     <th>序号</th>
-                    <th>供应商</th>
-                    <th>供应商状态</th>
+                    <th>客户</th>
                     <th>联系人</th>
-                    <th>联系电话</th>
+                    <th>联系方式</th>
                     <th>地址</th>
-                    <th>创建时间</th>
+                    <th>归属员工</th>
+                    <th>归属门店</th>
                     <th>操作</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr v-for="(item,index) in pageList" :key="item.shopName">
-                    <th scope="row"><el-checkbox v-model="item.checked" @change="handleCheckedProviderChange(item.checked,item.id)"></el-checkbox></th>
+                <tr v-for="(item,index) in pageList" :key="item.customerList">
                     <td>{{index+1}}</td>
-                    <td>{{item.proName}}</td>
-                    <td v-if="item.proStatus == 0">已停用</td>
-                    <td v-if="item.proStatus == 1">正常</td>
-                    <td>{{item.proLinkman}}</td>
-                    <td>{{item.proPhone}}</td>
-                    <td>{{item.proAddress}}</td>
-                    <td>{{item.createDate}}</td>
+                    <td>{{item.customerName}}</td>
+                    <td>{{item.customerLinkman}}</td>
+                    <td>{{item.customerPhone}}</td>
+                    <td>{{item.customerAddress}}</td>
+                    <td>{{item.empName}}</td>
+                    <td>{{item.shopName}}</td>
                     <td>
-                        <el-tag type="warning" size="small" @click="providerDetail(item.id)">详情</el-tag>
-                        <el-tag type="danger" size="small" @click="frozen(item.id)">冻结</el-tag>
-                        <el-tag type="success" size="small" @click="thaw(item.id)">解冻</el-tag>
+                        <el-tag type="warning" size="small" @click="customerDetail(item.id)">详情</el-tag>
+                        <el-tag type="danger" size="small" @click="customerDetail(item.id)">删除</el-tag>
                     </td>
                 </tr>
                 </tbody>
@@ -72,21 +64,21 @@
                     <div class="my-modal modal-content">
                         <div class="modal-header">
                             <button type="button" class="close"><span aria-hidden="true" @click="closeAdd">×</span></button>
-                            <h4 class="modal-title">新增供应商</h4>
+                            <h4 class="modal-title">新增客户</h4>
                         </div>
                         <div class="modal-body">
                             <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
-                                <el-form-item label="供应商" prop="proName">
-                                    <el-input v-model="ruleForm.proName" @blur="checkProvider(ruleForm.proName)"></el-input>
+                                <el-form-item label="客户名称" prop="customerName">
+                                    <el-input v-model="ruleForm.customerName" @blur="checkCustomer(ruleForm.customerName)"></el-input>
                                 </el-form-item>
-                                <el-form-item label="联系人" prop="proLinkman">
-                                    <el-input v-model="ruleForm.proLinkman"></el-input>
+                                <el-form-item label="联系人">
+                                    <el-input v-model="ruleForm.customerLinkman"></el-input>
                                 </el-form-item>
-                                <el-form-item label="联系电话" prop="proPhone">
-                                    <el-input type="proPhone" v-model="ruleForm.proPhone"></el-input>
+                                <el-form-item label="联系电话" prop="customerPhone">
+                                    <el-input type="proPhone" v-model="ruleForm.customerPhone"></el-input>
                                 </el-form-item>
-                                <el-form-item label="邮箱" prop="proEmail">
-                                    <el-input v-model="ruleForm.proEmail"></el-input>
+                                <el-form-item label="邮箱" prop="customerEmail">
+                                    <el-input v-model="ruleForm.customerEmail"></el-input>
                                 </el-form-item>
                                 <el-form-item label="开户银行" prop="bank">
                                     <el-input v-model="ruleForm.bank"></el-input>
@@ -94,8 +86,19 @@
                                 <el-form-item label="银行卡号" prop="bankNum">
                                     <el-input v-model="ruleForm.bankNum"></el-input>
                                 </el-form-item>
-                                <el-form-item label="地址" prop="proAddress">
-                                    <el-input v-model="ruleForm.proAddress"></el-input>
+                                <el-form-item label="地址" prop="customerAddress">
+                                    <el-input v-model="ruleForm.customerAddress"></el-input>
+                                </el-form-item>
+                                <el-form-item label="负责员工" prop="empId">
+                                    <el-select v-model="ruleForm.empId" filterable placeholder="请选择负责员工" size="small">
+                                        <el-option label="请选择负责员工" value=""></el-option>
+                                        <el-option
+                                                v-for="item in empList"
+                                                :key="item.id.toString()"
+                                                :label="item.empName"
+                                                :value="item.id">
+                                        </el-option>
+                                    </el-select>
                                 </el-form-item>
                             </el-form>
                         </div>
@@ -108,7 +111,7 @@
             </div>
         </transition>
 
-        <!--门店详情弹出框-->
+        <!--客户详情弹出框-->
         <transition>
             <div class="my-tanchukuang" v-if="showDetail">
                 <div>
@@ -119,31 +122,31 @@
                         </div>
                         <div class="modal-body">
                             <div class="alert alert-success" role="alert">供应商信息</div>
-                            <el-form :model="provider" :rules="rules" ref="provider" label-width="100px" class="demo-ruleForm">
-                                <el-form-item label="供应商" prop="proName">
-                                    <el-input v-model="provider.proName" @blur="checkProvider(provider.proName)"></el-input>
+                            <el-form :model="customer" :rules="rules" ref="customer" label-width="100px" class="demo-ruleForm">
+                                <el-form-item label="客户" prop="customerName">
+                                    <el-input v-model="customer.customerName" @blur="checkCustomer(provider.proName)"></el-input>
                                 </el-form-item>
                                 <el-form-item label="联系人">
-                                    <el-input v-model="provider.proLinkman"></el-input>
+                                    <el-input v-model="customer.customerLinkman"></el-input>
                                 </el-form-item>
-                                <el-form-item label="联系电话" prop="proPhone">
-                                    <el-input type="proPhone" v-model="provider.proPhone"></el-input>
+                                <el-form-item label="联系电话" prop="customerPhone">
+                                    <el-input type="proPhone" v-model="customer.customerPhone"></el-input>
                                 </el-form-item>
-                                <el-form-item label="邮箱" prop="proEmail">
-                                    <el-input v-model="provider.proEmail"></el-input>
+                                <el-form-item label="邮箱" prop="customerEmail">
+                                    <el-input v-model="customer.customerEmail"></el-input>
                                 </el-form-item>
                                 <el-form-item label="开户银行">
-                                    <el-input v-model="provider.bank"></el-input>
+                                    <el-input v-model="customer.bank"></el-input>
                                 </el-form-item>
                                 <el-form-item label="银行卡号" prop="bankNum">
-                                    <el-input v-model="provider.bankNum"></el-input>
+                                    <el-input v-model="customer.bankNum"></el-input>
                                 </el-form-item>
                                 <el-form-item label="地址">
-                                    <el-input v-model="provider.proAddress"></el-input>
+                                    <el-input v-model="customer.customerAddress"></el-input>
                                 </el-form-item>
                             </el-form>
                             <div class="alert alert-success" role="alert">合作店铺</div>
-                            <table class="my-tab table table-bordered">
+                            <!--<table class="my-tab table table-bordered">
                                 <thead>
                                 <tr>
                                     <th>序号</th>
@@ -156,10 +159,10 @@
                                     <td>{{item.shopName}}</td>
                                 </tr>
                                 </tbody>
-                            </table>
+                            </table>-->
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" @click="updateProviderInfo('provider')">保存</button>
+                            <button type="button" class="btn btn-primary" @click="updateCustomerInfo('customer')">保存</button>
                         </div>
                     </div>
                 </div>
@@ -171,28 +174,21 @@
 <script>
     import Qs from 'qs';
     export default {
-        name: "providerList",
+        name: "customerList",
         inject:['reload'],
         data() {
             return {
-                provider:{},
-                // 查询门店条件对象
-                queryProvider:{
+                customer:{},
+                // 查询客户条件对象
+                queryCustomer:{
                     condition:''
                 },
-                // 供应商列表
-                providerList:[],
-                // 门店分页数据
-                pageList:[
-                    {id:'1001',shopName:'厦门沃尔玛',checked:false,shopType:{shopTypeName:'a'},shopAccount:'',shopLinkman:'',shopPhone:'',shopAddress:'',createdDate:'',shopHours:'08:30-22:00'},
-                    {id:'1002',shopName:'阿里巴巴',checked:false,shopType:{shopTypeName:'a'},shopAccount:'',shopLinkman:'',shopPhone:'',shopAddress:'',createdDate:'',shopHours:'09:30-22:00'}
-                ],
-                // 门店类型
-                shopTypeList:[],
-                // 门店名称列表
-                shopNameList:[],
-                // 选中的门店
-                checkedProvider:[],
+                // 客户列表
+                customerList:[],
+                // 客户分页数据
+                pageList:[],
+                // 员工列表
+                empList:[],
                 // 分页数据
                 currentPage: 1,
                 totalCount:0,
@@ -202,17 +198,13 @@
                 // 是否显示批量修改
                 showEdits:false,
                 showDetail:false,
-                // 是否选中所有
-                checkAll:false,
-                checked:false,
-                radio:'1',
                 // 添加表单
                 ruleForm: {},
                 rules: {
-                    proName: [
-                        { required: true, message: '请输入供应商名称', trigger: 'blur' },
+                    customerName: [
+                        { required: true, message: '请输入客户名称', trigger: 'blur' },
                     ],
-                    proPhone: [
+                    customerPhone: [
                         { required: true, message: '请输入联系电话', trigger: 'blur' },
                         { min: 11, max: 11, message: '请输入正确的手机号', trigger: 'blur' }
                     ],
@@ -221,6 +213,9 @@
                     ],
                     bankNum:[
                         { min: 19, max: 19, message: '银行卡号有误', trigger: 'blur' }
+                    ],
+                    empId:[
+                        { required: true, message: '请选择负责员工', trigger: 'blur' }
                     ]
                 }
             }
@@ -236,8 +231,8 @@
             },
             // 获取供应商列表
             init(){
-                this.$http.post('provider/proList/').then(result => {
-                    this.providerList = result.data.providerList;
+                this.$http.post('customer/findByList/').then(result => {
+                    this.customerList = result.data;
                     // 初始化分页器
                     this.initPage();
                     this.getPageList(this.currentPage);
@@ -245,14 +240,14 @@
             },
             // 初始化分页器
             initPage(){
-                this.totalCount = this.providerList.length;
+                this.totalCount = this.customerList.length;
                 this.currentPage = 1;
             },
             // 多条件查询
-            searchProvider(){
-                let params = Qs.stringify(this.queryProvider);
-                this.$http.post('provider/proList',params).then(result => {
-                    this.providerList = result.data.providerList;
+            searchCustomer(){
+                let params = Qs.stringify(this.queryCustomer);
+                this.$http.post('customer/findByList',params).then(result => {
+                    this.customerList = result.data;
                     // 获取分页数据
                     this.initPage();
                     this.getPageList(this.currentPage);
@@ -262,21 +257,21 @@
             getPageList(pageNo){
                 // 取消全选状态
                 this.checkAll = false;
-                this.checkedProvider = [];
+                this.checkedCustomer = [];
                 // 页面大小
                 let pageSize = this.pageSize;
                 // 进行数据截取
                 // 起始下标
                 let startIndex = (pageNo-1)*pageSize;
                 // 原始数据
-                let providerList = this.providerList;
+                let customerList = this.customerList;
                 // 分页数据
                 let pageList = [];
                 let pageCapacity = 0;
-                for (let i = startIndex;i<providerList.length;i++){
-                    let provider = providerList[i];
-                    provider.checked = false;
-                    pageList.push(provider);
+                for (let i = startIndex;i<customerList.length;i++){
+                    let customer = customerList[i];
+                    customer.checked = false;
+                    pageList.push(customer);
                     pageCapacity++;
                     // 判断是否装满当前页
                     if (pageCapacity >= pageSize) {
@@ -304,105 +299,30 @@
                 this.showAdd = false;
             },
             // 供应商详情
-            providerDetail(id){
-                this.$http.post('provider/proList','id='+id).then(result => {
-                    this.provider = result.data.providerList[0];
+            customerDetail(id){
+                this.$http.post('customer/findById','id='+id).then(result => {
+                    this.customer = result.data;
                     this.showDetail = true;
                 })
             },
-            // 冻结
-            frozen(id){
-                this.$confirm('冻结该供应商后,所有门店将终止其合作关系(搞不好要扣你工资的哟,为了生活,请谨慎操作), 是否继续?', '友情提示', {
-                    confirmButtonText: '确定',
-                    cancelButtonText: '取消',
-                    type: 'warning'
-                }).then(() => {
-                    this.updateProStatus(id,0);
-                }).catch(() => {
-                    this.$message({
-                        type: 'info',
-                        message: '操作已取消'
-                    });
-                });
-            },
-            thaw(id){
-                this.updateProStatus(id,1);
-            },
-            // 批量冻结供应商
-            batchFrozenProvider(){
-                // 判断是否有选中数据
-                if (this.checkedProvider.length == 0){
-                    this.$message({
-                        type: 'warning',
-                        message: '请选择要进行操作的数据'
-                    });
-                    return;
-                }
-                this.$confirm('冻结该供应商后,所有门店将终止其合作关系(搞不好要扣你工资的哟,为了生活,请谨慎操作), 是否继续?', '友情提示', {
-                    confirmButtonText: '确定',
-                    cancelButtonText: '取消',
-                    type: 'warning'
-                }).then(() => {
-                    let ids = this.checkedProvider.join(',');
-                    this.updateProStatus(ids,0);
-                }).catch(() => {
-                    this.$message({
-                        type: 'info',
-                        message: '操作已取消'
-                    });
-                });
-            },
-            // 批量解冻供应商
-            batchThawProvider(){
-                // 判断是否有选中数据
-                if (this.checkedProvider.length == 0){
-                    this.$message({
-                        type: 'warning',
-                        message: '请选择要进行操作的数据'
-                    });
-                    return;
-                }
-
-                let ids = this.checkedProvider.join(',');
-                this.updateProStatus(ids,1);
-            },
-            // 修改供应商状态
-            updateProStatus(id,status){
-                this.$http.post('provider/upProStatus','ids='+id+'&proStatus='+status).then(result => {
-                    if (result.data.state){
-                        this.$message({
-                            showClose:true,
-                            type:'success',
-                            message:'供应商状态修改成功'
-                        })
-                        this.init();
-                    } else{
-                        this.$message({
-                            showClose:true,
-                            type:'warning',
-                            message:'供应商状态修改失败'
-                        })
-                    }
-                })
-            },
             // 更新门店信息
-            updateProviderInfo(formName){
+            updateCustomerInfo(formName){
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
-                       let provider = this.provider;
-                       let id = provider.id;
-                       let proName = provider.proName;
-                       let proLinkman = provider.proLinkman;
-                       let proPhone = provider.proPhone;
-                       let proEmail = provider.proEmail;
-                       let bank = provider.bank;
-                       let bankNum = provider.bankNum;
-                       let proAddress = provider.proAddress;
+                       let customer = this.customer;
+                       let id = customer.id;
+                       let proName = customer.proName;
+                       let proLinkman = customer.proLinkman;
+                       let proPhone = customer.proPhone;
+                       let proEmail = customer.proEmail;
+                       let bank = customer.bank;
+                       let bankNum = customer.bankNum;
+                       let proAddress = customer.proAddress;
 
                        let params = `id=`+id+`&proName=`+proName+`&proLinkman=`+proLinkman+`&proPhone=`+proPhone
                                     +`&proEmail=`+proEmail+`&bank=`+bank+`&bankNum=`+bankNum+`&proAddress=`+proAddress;
 
-                        this.$http.post('provider/upPro',params).then(result => {
+                        this.$http.post('customer/upPro',params).then(result => {
                             if (result.data.state){
                                 this.$message({
                                     showClose:true,
@@ -435,43 +355,43 @@
             handleCheckAllChange(val) {
                 if (val){
                     // 选中所有
-                    this.checkedProvider = [];
+                    this.checkedCustomer = [];
                     this.pageList.forEach((item,index) => {
                         item.checked = true;
-                        this.checkedProvider.push(item.id);
+                        this.checkedCustomer.push(item.id);
                     })
                 } else{
                     this.pageList.forEach((item,index) => {
                         item.checked = false;
-                        this.checkedProvider = [];
+                        this.checkedCustomer = [];
                     })
                 }
                 // 强制更新
                 this.$forceUpdate();
-                console.log(this.checkedProvider);
+                console.log(this.checkedCustomer);
             },
             // 门店选中状态发生改变
-            handleCheckedProviderChange(val,id) {
-                let provider = {};
+            handlecheckedCustomerChange(val,id) {
+                let customer = {};
                 this.pageList.forEach((item,index) => {
                     if (item.id == id){
                         item.checked = val;
-                        provider = item;
+                        customer = item;
                     }
                 })
-                if (provider.checked){
+                if (customer.checked){
                     // 添加到选中的列表中
-                    this.checkedProvider.push(provider.id);
+                    this.checkedCustomer.push(customer.id);
                 }else{
-                    this.checkedProvider.forEach((item,index) => {
+                    this.checkedCustomer.forEach((item,index) => {
                         if (item == id){
-                            this.checkedProvider.splice(index,1);
+                            this.checkedCustomer.splice(index,1);
                         }
                     })
                 }
 
                 // 判断是否全部选中
-                if (this.checkedProvider.length == this.pageList.length){
+                if (this.checkedCustomer.length == this.pageList.length){
                     this.checkAll = true;
                 } else{
                     this.checkAll = false;
@@ -479,28 +399,18 @@
                 this.$forceUpdate();
 
             },
-            // 判断供应商是否存在
-            checkProvider(proName){
+            // 判断客户是否存在
+            checkCustomer(customerName){
                 // 1.判断该供应商是否已经存在
-                this.$http.post('provider/selProByProNameAndShopId','proName='+proName+'&shopId=').then(result => {
+                this.$http.post('customer/findByCustomerName','customerName='+customerName).then(result => {
                     // 供应商已经存在
-                    if (result.data.state){
-                        let proId = result.data.proId;
-                        // 判断该供应商是否正在为本店提供服务
-                        this.$http.post('provider/selProByProNameAndShopId','proName='+proName+'&shopId='+sessionStorage.getItem("shopId")).then(result => {
-                            if (result.data.state){
-                                // 正在为本店提供服务
-                                this.$message({
-                                    showClose:true,
-                                    type:'success',
-                                    message:'供应商('+proName+')正在为本店提供服务'
-                                })
-                                this.ruleForm.proName = '';
-                            } else{
-                                // 是否建立合作
-                                this.cooperation(proName,proId);
-                            }
-                        })
+                    if (!result.data.state){
+                        this.$message({
+                            showClose:true,
+                            type:'warning',
+                            message:'客户('+customerName+')已存在'
+                        });
+                        this.ruleForm.customerName = ''
                     }
                 })
             },
@@ -541,7 +451,7 @@
                     if (valid) {
                         // 添加供应商，并和本店建立合作关系
                         let params = Qs.stringify(this.ruleForm);
-                        this.$http.post('provider/addPro',params+'&shopId='+sessionStorage.getItem("shopId")).then(result => {
+                        this.$http.post('customer/addPro',params+'&shopId='+sessionStorage.getItem("shopId")).then(result => {
                             if (result.data.state){
                                 this.$message({
                                     showClose:true,
@@ -575,7 +485,7 @@
 </script>
 
 <style scoped lang="less">
-    #providerList{
+    #customerList{
         .el-tag{
             &:hover{
                 cursor: pointer;
