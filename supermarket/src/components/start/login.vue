@@ -70,7 +70,7 @@
                     if (result.data.state){
                         sessionStorage.setItem("empId",result.data.empId);
                         sessionStorage.setItem("shopId",result.data.shopId);
-                        this.$router.push({name:"home"})
+                        this.$router.push({name:"welcome"})
                     }else{
                         this.$message({
                             showClose: true,

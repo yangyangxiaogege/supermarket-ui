@@ -1,14 +1,15 @@
 <template>
-    <div id="rollbackList">
+    <!--批发出库单-->
+    <div id="wholeInvoiceList">
         <div class="my-content">
             <!--搜索区-->
             <div class="my-search">
-                <el-input v-model="queryOrder.condition" placeholder="供应商名称/联系人/联系电话/地址" style="width: 250px" size="small"></el-input>
+                <el-input v-model="queryOrder.condition" placeholder="客户/联系人/联系电话/地址" style="width: 250px" size="small"></el-input>
                 <el-button type="primary" size="small" @click="searchOrder">查询</el-button>
             </div>
             <!--工具-->
             <div class="my-tools">
-                <el-button icon="glyphicon glyphicon-plus" size="small" @click="openChooseOrder">从采购收货单中生成</el-button>
+                <el-button icon="glyphicon glyphicon-plus" size="small" @click="openChooseOrder">从批发订单中生成</el-button>
                 <el-button icon="glyphicon glyphicon-refresh" size="small" @click="refresh">刷新数据</el-button>
             </div>
             <!--数据-->
@@ -18,7 +19,7 @@
                     <th>序号</th>
                     <th>单号</th>
                     <th>店铺名称</th>
-                    <th>供应商</th>
+                    <th>客户</th>
                     <th>单据状态</th>
                     <th>收获状态</th>
                     <th>单据日期</th>
@@ -33,12 +34,11 @@
                     <td>{{index+1}}</td>
                     <td>{{item.id}}</td>
                     <td>{{item.shopName}}</td>
-                    <td>{{item.proName}}</td>
+                    <td>{{item.customerName}}</td>
                     <td v-if="item.singleState == 0">待审核</td>
                     <td v-if="item.singleState == 1">已审核</td>
-                    <td v-if="item.takeState == 0">待收货</td>
-                    <td v-if="item.takeState == 1">已收货</td>
-                    <td v-if="item.takeState == 2">已退货</td>
+                    <td v-if="item.takeState == 0">待发货</td>
+                    <td v-if="item.takeState == 1">已发货</td>
                     <td>{{item.placeOrderDate}}</td>
                     <td>{{item.empName}}</td>
                     <td>{{item.empPhone}}</td>
@@ -65,14 +65,14 @@
 
         </div>
 
-        <!--选择要进行退货的采购收货单-->
+        <!--选择要进行收获的采购订单-->
         <transition>
             <div class="my-tanchukuang" v-if="showChooseOrder">
                 <div>
                     <div class="my-modal modal-content" style="width: 800px;margin-left: -400px;">
                         <div class="modal-header">
                             <button type="button" class="close"><span aria-hidden="true" @click="closeChooseOrder">×</span></button>
-                            <h4 class="modal-title">选择采购收货单</h4>
+                            <h4 class="modal-title">选择采购订单</h4>
                         </div>
                         <div class="modal-body">
                             <table class="my-tab table table-bordered">
@@ -81,7 +81,7 @@
                                     <th>序号</th>
                                     <th>单号</th>
                                     <th>店铺名称</th>
-                                    <th>供应商</th>
+                                    <th>客户</th>
                                     <th>单据状态</th>
                                     <th>收获状态</th>
                                     <th>单据日期</th>
@@ -94,7 +94,7 @@
                                     <td>{{index+1}}</td>
                                     <td>{{item.id}}</td>
                                     <td>{{item.shopName}}</td>
-                                    <td>{{item.proName}}</td>
+                                    <td>{{item.customerName}}</td>
                                     <td v-if="item.singleState == 0">待审核</td>
                                     <td v-if="item.singleState == 1">已审核</td>
                                     <td v-if="item.takeState == 0">待收货</td>
@@ -112,32 +112,33 @@
                 </div>
             </div>
         </transition>
-        <!--添加采购订单弹出框-->
+        <!--添加收货单弹出框-->
         <transition>
             <div class="my-tanchukuang" v-if="showAdd">
                 <div>
                     <div class="my-modal modal-content" style="z-index: 2000">
                         <div class="modal-header">
                             <button type="button" class="close"><span aria-hidden="true" @click="closeAdd">×</span></button>
-                            <h4 class="modal-title">新增采购退货单</h4>
+                            <h4 class="modal-title">生成发货单</h4>
                         </div>
                         <div class="modal-body">
-                            <div class="alert alert-success" role="alert">采购订单信息</div>
-                            <el-form :model="ruleForm" ref="ruleForm" :rules="rules" label-width="100px" class="demo-ruleForm">
-                                <el-form-item label="供应商">
-                                    <el-input v-model="order.provider.proName" :disabled="true"></el-input>
+                            <div class="alert alert-success" role="alert">批发订单信息</div>
+                            <el-form label-width="100px" :model="ruleForm" :rules="rules" ref="ruleForm" class="demo-ruleForm">
+                                <el-form-item label="客户">
+                                    <el-input v-model="order.customerName" :disabled="true"></el-input>
                                 </el-form-item>
-                                <el-form-item label="收获店铺">
-                                    <el-input v-model="order.shop.shopName" :disabled="true"></el-input>
+                                <el-form-item label="收获地址">
+                                    <el-input v-model="order.customerAddress" :disabled="true"></el-input>
                                 </el-form-item>
-                                <el-form-item label="期望到货日期">
+                                <el-form-item label="预期到货日期">
                                     <el-input v-model="order.readyDate" :disabled="true"></el-input>
                                 </el-form-item>
                                 <el-form-item label="收货人">
-                                    <el-input v-model="order.employee.empName" :disabled="true"></el-input>
+                                    <el-input v-model="order.customerLinkMan" :disabled="true"></el-input>
                                 </el-form-item>
-                                <el-form-item label="存货仓库" prop="storeId">
+                                <el-form-item label="出货仓库" prop="storeId">
                                     <el-select v-model="ruleForm.storeId" filterable placeholder="请选择仓库" size="small">
+                                        <el-option label="请选择仓库" value=""></el-option>
                                         <el-option
                                                 v-for="item in storeList"
                                                 :key="item.id.toString()"
@@ -161,7 +162,7 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr v-for="(item,index) in order.orderDetailVoList" :key="item.id.toString()">
+                                <tr v-for="(item,index) in order.details" :key="item.id.toString()">
                                     <td>{{index+1}}</td>
                                     <td>{{item.goodsVo.goodsCode}}</td>
                                     <td>{{item.goodsVo.goodsName}}</td>
@@ -171,16 +172,17 @@
                                 </tr>
                                 </tbody>
                             </table>
+                            <el-tag>{{order.totalMoney}} RMB</el-tag>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" @click="submitForm('ruleForm',order.id)">确认退货</button>
+                            <button type="button" class="btn btn-primary" @click="submitForm('ruleForm',order.id)">确认发货</button>
                         </div>
                     </div>
                 </div>
             </div>
         </transition>
 
-        <!--采购退货单详情-->
+        <!--采购收货单详情弹出框-->
         <transition>
             <div class="my-tanchukuang" v-if="showDetail">
                 <div>
@@ -192,20 +194,20 @@
                         <div class="modal-body">
                             <div class="alert alert-success" role="alert">采购订单信息</div>
                             <el-form label-width="100px" class="demo-ruleForm">
-                                <el-form-item label="供应商">
-                                    <el-input v-model="order.provider.proName" :disabled="true"></el-input>
+                                <el-form-item label="客户">
+                                    <el-input v-model="order.customerName" :disabled="true"></el-input>
                                 </el-form-item>
-                                <el-form-item label="收获店铺">
-                                    <el-input v-model="order.shop.shopName" :disabled="true"></el-input>
+                                <el-form-item label="收获地址">
+                                    <el-input v-model="order.customerAddress" :disabled="true"></el-input>
                                 </el-form-item>
-                                <el-form-item label="期望到货日期">
+                                <el-form-item label="预期到货日期">
                                     <el-input v-model="order.readyDate" :disabled="true"></el-input>
                                 </el-form-item>
                                 <el-form-item label="收货人">
-                                    <el-input v-model="order.employee.empName" :disabled="true"></el-input>
+                                    <el-input v-model="order.customerLinkMan" :disabled="true"></el-input>
                                 </el-form-item>
                             </el-form>
-                            <div class="alert alert-success" role="alert">采购订单详情</div>
+                            <div class="alert alert-success" role="alert">批发订单详情</div>
                             <!--明细-->
                             <table class="my-tab table table-bordered">
                                 <thead>
@@ -219,11 +221,11 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr v-for="(item,index) in order.orderDetailVoList" :key="item.id.toString()">
+                                <tr v-for="(item,index) in order.details" :key="item.id.toString()">
                                     <td>{{index+1}}</td>
                                     <td>{{item.goodsVo.goodsCode}}</td>
                                     <td>{{item.goodsVo.goodsName}}</td>
-                                    <td>{{item.goodsVo.costPrice}}</td>
+                                    <td>{{item.goodsVo.wholePrice}}</td>
                                     <td>{{item.goodsCount}}</td>
                                     <td>{{item.totalMoney}}</td>
                                 </tr>
@@ -231,6 +233,7 @@
                             </table>
                         </div>
                         <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" >退货</button>
                         </div>
                     </div>
                 </div>
@@ -242,7 +245,7 @@
 <script>
     import Qs from 'qs';
     export default {
-        name: "rollbackList",
+        name: "wholeInvoiceList",
         inject:['reload'],
         data() {
             return {
@@ -259,38 +262,20 @@
                 queryOrder:{},
                 // 仓库列表
                 storeList:[],
-                // 采购订单分页数据
+                // 采购收货单分页数据
                 pageList:[],
-                // 选中的订单明细（要进行持久化的商品数据）
-                checkedDetailGoods:[],
-                // 选中的供应商提供的商品（要添加到持久化的商品中的数据）
-                checkedProGoods:[],
                 // 分页数据
                 currentPage: 1,
                 totalCount:0,
                 pageSize:10,
                 // 是否显示添加框
                 showAdd:false,
-                showChooseGoods:false,
                 showDetail:false,
                 showChooseOrder:false,
-                // 是否选中所有要进行持久话的商品
-                checkedAllDetail:false,
-                // 是否选中供应商下的所有商品
-                checkedAllProGoods:false,
                 ruleForm: {},
                 rules: {
-                    proId: [
-                        { required: true, message: '请选择供应商', trigger: 'blur' },
-                    ],
-                    readyDate: [
-                        { required: true, message: '请录入期望到货日期', trigger: 'blur' }
-                    ],
-                    empId: [
-                        { required: true, message: '请选择收货人', trigger: 'blur' }
-                    ],
                     storeId:[
-                        { required: true, message: '请选择仓库', trigger: 'blur' }
+                        {required:true,message: '请选择仓库',trigger:'blur'}
                     ]
                 }
             }
@@ -306,8 +291,8 @@
             },
             // 获取采购订单列表
             init(){
-                this.$http.post('order/orderList/','takeState=2').then(result => {
-                    this.orderList = result.data.orderVoList;
+                this.$http.post('wholeOrder/findByCondition/','takeState=1').then(result => {
+                    this.orderList = result.data;
                     // 初始化分页器
                     this.initPage();
                     this.getPageList(this.currentPage);
@@ -321,8 +306,8 @@
             // 多条件查询
             searchOrder(){
                 let params = Qs.stringify(this.queryOrder);
-                this.$http.post('order/orderList',params+'&takeState=1').then(result => {
-                    this.orderList = result.data.orderVoList;
+                this.$http.post('wholeOrder/findByCondition',params+'&takeState=1').then(result => {
+                    this.orderList = result.data;
                     // 获取分页数据
                     this.initPage();
                     this.getPageList(this.currentPage);
@@ -372,22 +357,10 @@
             handleCurrentChange(val) {
                 this.getPageList(val);
             },
-            // 选择要进行退货的订单
+            // 选择要进行发货的订单
             openChooseOrder(){
-                this.$http.post('order/orderList/','singleState=1&takeState=1').then(result => {
-                    let chooseOrderList = result.data.orderVoList;
-                    chooseOrderList.forEach((item,index) => {
-                        if (item.shop !=null){
-                            item.shopName = item.shop.shopName;
-                            item.shopAddress = item.shop.shopAddress;
-                        }
-                        if (item.employee != null){
-                            item.empName = item.employee.empName;
-                        }
-                        if (item.provider != null){
-                            item.proName = item.provider.proName;
-                        }
-                    })
+                this.$http.post('wholeOrder/findByCondition/','singleState=1&takeState=0').then(result => {
+                    let chooseOrderList = result.data;
                     this.chooseOrderList = chooseOrderList;
                     this.showChooseOrder = true;
                 });
@@ -395,26 +368,45 @@
             closeChooseOrder(){
                 this.showChooseOrder = false;
             },
-            // 打开新建采购退货单
+            // 打开新建采购收货单
             openAdd(id) {
                 this.ruleForm = {};
-                this.$http.post('order/selOrderAndDetailByOrderId/','id='+id).then(result => {
-                    this.order = result.data[0];
-                    this.showAdd = true;
-                });
 
+                this.$http.post('wholeOrder/findById/','id='+id).then(result => {
+                    let order = result.data;
+                    let totalMoney = 0;
+                    if (order.details != null){
+                        order.details.forEach((item,index) => {
+                            totalMoney += parseFloat(item.totalMoney);
+                        })
+                    }
+                    order.totalMoney = totalMoney;
+
+                    // if (order.shop !=null){
+                    //     order.shopName = order.shop.shopName;
+                    //     order.shopAddress = order.shop.shopAddress;
+                    // }
+                    // if (order.employee != null){
+                    //     order.empName = order.employee.empName;
+                    // }
+                    // if (order.provider != null){
+                    //     order.proName = order.provider.proName;
+                    // }
+                    this.order = order;
+                });
                 // 获取本店下的仓库
                 this.$http.post('store/findByShopId/','shopId='+sessionStorage.getItem("shopId")).then(result => {
                     this.storeList = result.data;
                 });
+                this.showAdd = true;
             },
             closeAdd(){
                 this.showAdd = false;
             },
             // 供应商详情
             orderDetail(id){
-                this.$http.post('order/selOrderAndDetailByOrderId/','id='+id).then(result => {
-                    this.order = result.data[0];
+                this.$http.post('wholeOrder/findById/','id='+id).then(result => {
+                    this.order = result.data;
                     this.showDetail = true;
                 });
             },
@@ -425,33 +417,33 @@
             submitForm(formName,orderId) {
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
-                        // orderId,takeState,storeId,goodsStr
-                        let params = 'orderId='+orderId+'&takeState=2&storeId='+this.ruleForm.storeId;
-                        let goods =  this.order.orderDetailVoList;
-                        let goodsList = [];
-                        goods.forEach((item,index) => {
-                            goodsList.push({goodsId:item.goodsId,goodsCount:item.goodsCount});
-                        })
-                        let goodsStr = JSON.stringify(goodsList);
-                        this.$http.post('order/upOrderTakeState',params+'&goodsStr='+goodsStr).then(result => {
-                            if (result.data.state){
+                        let params = 'wholeId='+orderId+'&storeId='+this.ruleForm.storeId;
+                        // let goods =  this.order.orderDetailVoList;
+                        // let goodsList = [];
+                        // goods.forEach((item,index) => {
+                        //     goodsList.push({goodsId:item.goodsId,goodsCount:item.goodsCount});
+                        // })
+                        // let goodsStr = JSON.stringify(goodsList);
+                        // params += '&goodsStr='+goodsStr;
+                        this.$http.post('wholeOrder/outWholeStore',params).then(result => {
+                            if (result.data.result){
                                 this.$message({
                                     showClose:true,
                                     type:'success',
-                                    message:'退货成功'
-                                });
-                                this.init();
-                                this.ruleForm = {};
+                                    message:'发货成功'
+                                })
                                 this.showAdd = false;
                                 this.showChooseOrder = false;
-                            } else{
+                                this.init();
+                            }else{
                                 this.$message({
                                     showClose:true,
                                     type:'error',
-                                    message:'退货失败，请查看库存中商品数据是否满足退货需求'
-                                });
+                                    message:'请检查库存中商品信息是否满足发货需求'
+                                })
                             }
                         })
+
                     } else {
                         this.$message({
                             showClose:true,
@@ -470,7 +462,7 @@
 </script>
 
 <style scoped lang="less">
-    #rollbackList{
+    #wholeInvoiceList{
         .el-tag{
             &:hover{
                 cursor: pointer;

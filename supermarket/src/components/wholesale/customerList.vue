@@ -8,7 +8,7 @@
             </div>
             <!--工具-->
             <div class="my-tools">
-                <el-button icon="glyphicon glyphicon-plus" size="small" @click="openAdd">新增供应商</el-button>
+                <el-button icon="glyphicon glyphicon-plus" size="small" @click="openAdd">新增客户</el-button>
                 <el-button icon="glyphicon glyphicon-refresh" size="small" @click="refresh">刷新数据</el-button>
             </div>
             <!--数据-->
@@ -36,7 +36,7 @@
                     <td>{{item.shopName}}</td>
                     <td>
                         <el-tag type="warning" size="small" @click="customerDetail(item.id)">详情</el-tag>
-                        <el-tag type="danger" size="small" @click="customerDetail(item.id)">删除</el-tag>
+                        <el-tag type="danger" size="small" @click="douniwan">删除</el-tag>
                     </td>
                 </tr>
                 </tbody>
@@ -124,7 +124,7 @@
                             <div class="alert alert-success" role="alert">供应商信息</div>
                             <el-form :model="customer" :rules="rules" ref="customer" label-width="100px" class="demo-ruleForm">
                                 <el-form-item label="客户" prop="customerName">
-                                    <el-input v-model="customer.customerName" @blur="checkCustomer(provider.proName)"></el-input>
+                                    <el-input v-model="customer.customerName"></el-input>
                                 </el-form-item>
                                 <el-form-item label="联系人">
                                     <el-input v-model="customer.customerLinkman"></el-input>
@@ -145,21 +145,6 @@
                                     <el-input v-model="customer.customerAddress"></el-input>
                                 </el-form-item>
                             </el-form>
-                            <div class="alert alert-success" role="alert">合作店铺</div>
-                            <!--<table class="my-tab table table-bordered">
-                                <thead>
-                                <tr>
-                                    <th>序号</th>
-                                    <th>店铺名称</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr v-for="(item,index) in provider.shopList" :key="item.id.toString()">
-                                    <td>{{index+1}}</td>
-                                    <td>{{item.shopName}}</td>
-                                </tr>
-                                </tbody>
-                            </table>-->
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-primary" @click="updateCustomerInfo('customer')">保存</button>
@@ -195,8 +180,6 @@
                 pageSize:10,
                 // 是否显示添加框
                 showAdd:false,
-                // 是否显示批量修改
-                showEdits:false,
                 showDetail:false,
                 // 添加表单
                 ruleForm: {},
@@ -293,15 +276,19 @@
             },
             openAdd() {
                 this.ruleForm = {};
-                this.showAdd = true;
+                // 获取员工列表
+                this.$http.post('employee/empCondition').then(result => {
+                    this.empList = result.data;
+                    this.showAdd = true;
+                })
             },
             closeAdd(){
                 this.showAdd = false;
             },
-            // 供应商详情
+            // 客户详情
             customerDetail(id){
-                this.$http.post('customer/findById','id='+id).then(result => {
-                    this.customer = result.data;
+                this.$http.post('customer/findByListCust','id='+id).then(result => {
+                    this.customer = result.data[0];
                     this.showDetail = true;
                 })
             },
@@ -309,21 +296,9 @@
             updateCustomerInfo(formName){
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
-                       let customer = this.customer;
-                       let id = customer.id;
-                       let proName = customer.proName;
-                       let proLinkman = customer.proLinkman;
-                       let proPhone = customer.proPhone;
-                       let proEmail = customer.proEmail;
-                       let bank = customer.bank;
-                       let bankNum = customer.bankNum;
-                       let proAddress = customer.proAddress;
-
-                       let params = `id=`+id+`&proName=`+proName+`&proLinkman=`+proLinkman+`&proPhone=`+proPhone
-                                    +`&proEmail=`+proEmail+`&bank=`+bank+`&bankNum=`+bankNum+`&proAddress=`+proAddress;
-
-                        this.$http.post('customer/upPro',params).then(result => {
-                            if (result.data.state){
+                        let params = Qs.stringify(this.customer);
+                        this.$http.post('customer/batchCust',params).then(result => {
+                            if (result.data.result){
                                 this.$message({
                                     showClose:true,
                                     type:'success',
@@ -451,14 +426,15 @@
                     if (valid) {
                         // 添加供应商，并和本店建立合作关系
                         let params = Qs.stringify(this.ruleForm);
-                        this.$http.post('customer/addPro',params+'&shopId='+sessionStorage.getItem("shopId")).then(result => {
-                            if (result.data.state){
+                        this.$http.post('customer/addCustomerstatus',params).then(result => {
+                            if (result.data.result){
                                 this.$message({
                                     showClose:true,
                                     type:'success',
                                     message:'添加成功'
                                 })
                                 this.ruleForm = {};
+                                this.init();
                             } else{
                                 this.$message({
                                     showClose:true,
@@ -479,7 +455,49 @@
             },
             resetForm(formName) {
                 this.$refs[formName].resetFields();
+            },
+            // 逗你玩
+            douniwan(){
+                this.$confirm('确定要删除这个客户吗？搞不好你老板要怼你的', '友情提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.$confirm('下定决心了吗？不会后悔吗？', '友情提示', {
+                        confirmButtonText: '我意已决',
+                        cancelButtonText: '我怂了',
+                        type: 'warning'
+                    }).then(() => {
+                        this.$confirm('这个客户是你想删就删的吗？开什么国际玩笑?', '逗你玩', {
+                            confirmButtonText: '我就删了',
+                            cancelButtonText: '我不删了',
+                            type: 'info'
+                        }).then(() => {
+                            this.$message({
+                                showClose:true,
+                                type:'warning',
+                                message:'你这个月工资没了'
+                            })
+                        }).catch(() => {
+                            this.$message({
+                                type: 'info',
+                                message: '已取消删除'
+                            });
+                        });
+                    }).catch(() => {
+                        this.$message({
+                            type: 'info',
+                            message: '你真怂！！！'
+                        });
+                    });
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
             }
+
         }
     }
 </script>

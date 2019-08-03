@@ -1,4 +1,5 @@
 <template>
+    <!--采购收货单-->
     <div id="invoiceList">
         <div class="my-content">
             <!--搜索区-->
@@ -181,7 +182,7 @@
             </div>
         </transition>
 
-        <!--采购退货单单详情弹出框-->
+        <!--采购收货单详情弹出框-->
         <transition>
             <div class="my-tanchukuang" v-if="showDetail">
                 <div>
@@ -261,25 +262,16 @@
                 queryOrder:{},
                 // 仓库列表
                 storeList:[],
-                // 采购订单分页数据
+                // 采购收货单分页数据
                 pageList:[],
-                // 选中的订单明细（要进行持久化的商品数据）
-                checkedDetailGoods:[],
-                // 选中的供应商提供的商品（要添加到持久化的商品中的数据）
-                checkedProGoods:[],
                 // 分页数据
                 currentPage: 1,
                 totalCount:0,
                 pageSize:10,
                 // 是否显示添加框
                 showAdd:false,
-                showChooseGoods:false,
                 showDetail:false,
                 showChooseOrder:false,
-                // 是否选中所有要进行持久话的商品
-                checkedAllDetail:false,
-                // 是否选中供应商下的所有商品
-                checkedAllProGoods:false,
                 ruleForm: {},
                 rules: {
                     storeId:[
@@ -388,7 +380,7 @@
             closeChooseOrder(){
                 this.showChooseOrder = false;
             },
-            // 打开新建采购单
+            // 打开新建采购收货单
             openAdd(id) {
                 this.ruleForm = {};
 
@@ -453,6 +445,9 @@
                                     type:'success',
                                     message:'收货成功'
                                 })
+                                this.showAdd = false;
+                                this.showChooseOrder = false;
+                                this.init();
                             }else{
                                 this.$message({
                                     showClose:true,

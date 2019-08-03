@@ -1,14 +1,14 @@
 <template>
-    <div id="orderList">
+    <div id="wholeOrderList">
         <div class="my-content">
             <!--搜索区-->
             <div class="my-search">
-                <el-input v-model="queryOrder.condition" placeholder="供应商名称/收货人/收获电话/地址" style="width: 250px" size="small"></el-input>
+                <el-input v-model="queryOrder.condition" placeholder="门店名称/订单号/客户名称/收货人/收货地址" style="width: 350px" size="small"></el-input>
                 <el-button type="primary" size="small" @click="searchOrder">查询</el-button>
             </div>
             <!--工具-->
             <div class="my-tools">
-                <el-button icon="glyphicon glyphicon-plus" size="small" @click="openAdd">新建采购单</el-button>
+                <el-button icon="glyphicon glyphicon-plus" size="small" @click="openAdd">新建批发单</el-button>
                 <el-button icon="glyphicon glyphicon-refresh" size="small" @click="refresh">刷新数据</el-button>
             </div>
             <!--数据-->
@@ -18,7 +18,7 @@
                     <th>序号</th>
                     <th>单号</th>
                     <th>店铺名称</th>
-                    <th>供应商</th>
+                    <th>客户</th>
                     <th>单据状态</th>
                     <th>收获状态</th>
                     <th>单据日期</th>
@@ -33,12 +33,12 @@
                     <td>{{index+1}}</td>
                     <td>{{item.id}}</td>
                     <td>{{item.shopName}}</td>
-                    <td>{{item.proName}}</td>
+                    <td>{{item.customerName}}</td>
                     <td v-if="item.singleState == 0">待审核</td>
                     <td v-if="item.singleState == 1">已审核</td>
                     <td v-if="item.singleState == 2">未通过审核</td>
-                    <td v-if="item.takeState == 0">待收货</td>
-                    <td v-if="item.takeState == 1">已收货</td>
+                    <td v-if="item.takeState == 0">待发货</td>
+                    <td v-if="item.takeState == 1">已发货</td>
                     <td v-if="item.takeState == 2">已退货</td>
                     <td>{{item.placeOrderDate}}</td>
                     <td>{{item.empName}}</td>
@@ -66,53 +66,53 @@
 
         </div>
 
-        <!--添加采购订单弹出框-->
+        <!--添加批发订单弹出框-->
         <transition>
             <div class="my-tanchukuang" v-if="showAdd">
                 <div>
                     <div class="my-modal modal-content" style="width: 800px;margin-left: -400px;">
                         <div class="modal-header">
                             <button type="button" class="close"><span aria-hidden="true" @click="closeAdd">×</span></button>
-                            <h4 class="modal-title">新增采购订单</h4>
+                            <h4 class="modal-title">新增批发订单</h4>
                         </div>
                         <div class="modal-body">
-                            <div class="alert alert-success" role="alert">采购订单信息</div>
+                            <div class="alert alert-success" role="alert">批发订单信息</div>
                             <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
-                                <el-form-item label="供应商" prop="proId">
-                                    <el-select v-model="ruleForm.proId" filterable placeholder="请选择供应商" size="small" @change="proChange">
+                                <el-form-item label="客户" prop="customerId">
+                                    <el-select v-model="ruleForm.customerId" filterable placeholder="请选择客户" size="small" @change="customerChange">
                                         <el-option
-                                                v-for="item in providerList"
-                                                :key="item.proName"
-                                                :label="item.proName"
+                                                v-for="item in customerList"
+                                                :key="item.id.toString()"
+                                                :label="item.customerName"
                                                 :value="item.id">
                                         </el-option>
                                     </el-select>
                                 </el-form-item>
-                                <el-form-item label="收获店铺" prop="shopId">
-                                    <el-input v-model="ruleForm.shopName" :disabled="true"></el-input>
+                                <el-form-item label="收获地址">
+                                    <el-input v-model="ruleForm.customerAddress" :disabled="true"></el-input>
                                 </el-form-item>
-                                <el-form-item label="期望到货" prop="readyDate">
+                                <el-form-item label="预到货日期" prop="readyDate">
                                     <el-date-picker
                                             v-model="ruleForm.readyDate"
                                             type="date"
                                             size="small"
                                             value-format="yyyy/MM/dd"
-                                            placeholder="开始日期">
+                                            placeholder="预出货日期">
                                     </el-date-picker>
                                 </el-form-item>
-                                <el-form-item label="收货人" prop="empId">
-                                    <el-select v-model="ruleForm.empId" filterable placeholder="请选择供应商" size="small">
+                                <el-form-item label="出货仓库" prop="storeId">
+                                    <el-select v-model="ruleForm.storeId" filterable placeholder="请选择仓库" size="small" @change="storeChange">
+                                        <el-option label="请选择仓库" value=""></el-option>
                                         <el-option
-                                                v-for="item in empList"
+                                                v-for="item in storeList"
                                                 :key="item.id.toString()"
-                                                :label="item.empName"
+                                                :label="item.storeName"
                                                 :value="item.id">
                                         </el-option>
                                     </el-select>
                                 </el-form-item>
-
                             </el-form>
-                            <div class="alert alert-success" role="alert">采购订单详情</div>
+                            <div class="alert alert-success" role="alert">批发订单详情</div>
                             <!--操作-->
                             <el-button icon="glyphicon glyphicon-plus" size="small" @click="openChooseGoods">添加商品</el-button>
                             <el-button icon="glyphicon glyphicon-plus" size="small" @click="removeChooseGoods" style="color:red;">删除商品</el-button>
@@ -133,11 +133,11 @@
                                 </thead>
                                 <tbody>
                                 <tr v-for="(item,index) in goodsList" :key="item.goodsName">
-                                    <th scope="row"><el-checkbox v-model="item.checked" @change="handleCheckedDetailGoodsChange(item.checked,item.id)"></el-checkbox></th>
+                                    <th scope="row"><el-checkbox v-model="item.checked" @change="handleCheckedDetailGoodsChange(item.checked,item.goodsId)"></el-checkbox></th>
                                     <td>{{index+1}}</td>
                                     <td>{{item.goodsCode}}</td>
                                     <td>{{item.goodsName}}</td>
-                                    <td>{{item.costPrice}}</td>
+                                    <td>{{item.wholePrice}}</td>
                                     <td>
                                         <el-tag @click="changeGoodsCount(item)">{{item.goodsCount}}</el-tag>
                                     </td>
@@ -170,21 +170,21 @@
                                 <thead>
                                 <tr>
                                     <th>
-                                        <el-checkbox v-model="checkedAllProGoods" @change="handleCheckAllProGoodsChange"></el-checkbox>
+                                        <el-checkbox v-model="checkedAllGoods" @change="handleCheckAllGoodsChange"></el-checkbox>
                                     </th>
                                     <th>序号</th>
                                     <th>商品条码</th>
                                     <th>商品名称</th>
-                                    <th>进货单价</th>
+                                    <th>批发价</th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr v-for="(item,index) in proGoods" :key="item.goodsName">
-                                    <th scope="row"><el-checkbox v-model="item.checked" @change="handleCheckedProGoodsChange(item.checked,item.id)"></el-checkbox></th>
+                                <tr v-for="(item,index) in goods" :key="item.goodsName">
+                                    <th scope="row"><el-checkbox v-model="item.checked" @change="handlecheckedGoodsChange(item.checked,item.goodsId)"></el-checkbox></th>
                                     <td>{{index+1}}</td>
-                                    <td>{{item.goodsCode}}</td>
-                                    <td>{{item.goodsName}}</td>
-                                    <td>{{item.costPrice}}</td>
+                                    <td>{{item.goods.goodsCode}}</td>
+                                    <td>{{item.goods.goodsName}}</td>
+                                    <td>{{item.goods.wholePrice}}</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -197,29 +197,29 @@
             </div>
         </transition>
 
-        <!--采购订单详情弹出框-->
+        <!--批发订单详情弹出框-->
         <transition>
             <div class="my-tanchukuang" v-if="showDetail">
                 <div>
                     <div class="my-modal modal-content" style="width: 800px;margin-left: -400px;">
                         <div class="modal-header">
                             <button type="button" class="close"><span aria-hidden="true" @click="closeDetail">×</span></button>
-                            <h4 class="modal-title">采购订单详情</h4>
+                            <h4 class="modal-title">批发订单详情</h4>
                         </div>
                         <div class="modal-body">
-                            <div class="alert alert-success" role="alert">采购订单信息</div>
+                            <div class="alert alert-success" role="alert">批发订单信息</div>
                             <el-form label-width="100px" class="demo-ruleForm">
-                                <el-form-item label="供应商">
-                                   <el-input v-model="order.provider.proName" :disabled="true"></el-input>
+                                <el-form-item label="客户">
+                                   <el-input v-model="order.customerName" :disabled="true"></el-input>
                                 </el-form-item>
-                                <el-form-item label="收获店铺">
-                                    <el-input v-model="order.shop.shopName" :disabled="true"></el-input>
+                                <el-form-item label="收获地址">
+                                    <el-input v-model="order.customerAddress" :disabled="true"></el-input>
                                 </el-form-item>
-                                <el-form-item label="期望到货日期">
+                                <el-form-item label="预期到货日期">
                                     <el-input v-model="order.readyDate" :disabled="true"></el-input>
                                 </el-form-item>
                                 <el-form-item label="收货人">
-                                    <el-input v-model="order.employee.empName" :disabled="true"></el-input>
+                                    <el-input v-model="order.customerLinkman" :disabled="true"></el-input>
                                 </el-form-item>
                             </el-form>
                             <div class="alert alert-success" role="alert">采购订单详情</div>
@@ -236,11 +236,11 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr v-for="(item,index) in order.orderDetailVoList" :key="item.id.toString()">
+                                <tr v-for="(item,index) in order.details" :key="item.id.toString()">
                                     <td>{{index+1}}</td>
                                     <td>{{item.goodsVo.goodsCode}}</td>
                                     <td>{{item.goodsVo.goodsName}}</td>
-                                    <td>{{item.goodsVo.costPrice}}</td>
+                                    <td>{{item.goodsVo.wholePrice}}</td>
                                     <td>{{item.goodsCount}}</td>
                                     <td>{{item.totalMoney}}</td>
                                 </tr>
@@ -261,7 +261,7 @@
 <script>
     import Qs from 'qs';
     export default {
-        name: "orderList",
+        name: "wholeOrderList",
         inject:['reload'],
         data() {
             return {
@@ -271,12 +271,12 @@
                 // 订单明细中的商品列表
                 goodsList:[],
                 // 供应商提供的商品
-                proGoods:[],
+                goods:[],
                 //-----------------
                 // 查询采购订单条件对象
                 queryOrder:{},
-                // 本店供应商列表
-                providerList:[],
+                // 客户列表
+                customerList:[],
                 // 采购订单分页数据
                 pageList:[],
                 // 门店名称列表
@@ -286,7 +286,9 @@
                 // 选中的订单明细（要进行持久化的商品数据）
                 checkedDetailGoods:[],
                 // 选中的供应商提供的商品（要添加到持久化的商品中的数据）
-                checkedProGoods:[],
+                checkedGoods:[],
+                // 本店仓库
+                storeList:[],
                 // 分页数据
                 currentPage: 1,
                 totalCount:0,
@@ -298,17 +300,17 @@
                 // 是否选中所有要进行持久话的商品
                 checkedAllDetail:false,
                 // 是否选中供应商下的所有商品
-                checkedAllProGoods:false,
+                checkedAllGoods:false,
                 ruleForm: {},
                 rules: {
-                    proId: [
+                    customerId: [
                         { required: true, message: '请选择供应商', trigger: 'blur' },
                     ],
                     readyDate: [
                         { required: true, message: '请录入期望到货日期', trigger: 'blur' }
                     ],
-                    empId: [
-                        { required: true, message: '请选择收货人', trigger: 'blur' }
+                    storeId:[
+                        { required: true, message: '请选择出货仓库', trigger: 'blur' }
                     ]
                 }
             }
@@ -324,8 +326,8 @@
             },
             // 获取采购订单列表
             init(){
-                this.$http.post('order/orderList/').then(result => {
-                    this.orderList = result.data.orderVoList;
+                this.$http.post('wholeOrder/findByCondition/').then(result => {
+                    this.orderList = result.data;
                     // 初始化分页器
                     this.initPage();
                     this.getPageList(this.currentPage);
@@ -339,8 +341,8 @@
             // 多条件查询
             searchOrder(){
                 let params = Qs.stringify(this.queryOrder);
-                this.$http.post('order/orderList',params).then(result => {
-                    this.orderList = result.data.orderVoList;
+                this.$http.post('wholeOrder/findByCondition',params).then(result => {
+                    this.orderList = result.data;
                     // 获取分页数据
                     this.initPage();
                     this.getPageList(this.currentPage);
@@ -394,47 +396,47 @@
             openAdd() {
                 this.ruleForm = {};
                 this.checkedDetailGoods = [];
-                this.checkedProGoods = [];
-                // 获取本店供应商列表（状态为正常）
-                this.$http.post('provider/proList','shopId='+sessionStorage.getItem("shopId")+'&proStatus=1').then(result => {
-                    this.providerList = result.data.providerList;
+                this.checkedGoods = [];
+                // 获取客户列表（状态为正常）
+                this.$http.post('customer/findByList').then(result => {
+                    this.customerList = result.data;
                 });
-                // 获取本店店铺名
-                this.$http.post('shop/shopList','id='+sessionStorage.getItem("shopId")).then(result => {
-                    let shop = result.data.shopList[0];
-                    if (shop != null) {
-                        this.ruleForm.shopName = shop.shopName;
-                    }
-                });
-                // 获取本店员工 （正常）
-                this.$http.post('shop/selEmpByShopId','id='+sessionStorage.getItem("shopId")+'&empStatus=0').then(result => {
-                    this.empList = result.data;
+                // 获取本店下的仓库
+                this.$http.post('store/findByShopId/','shopId='+sessionStorage.getItem("shopId")).then(result => {
+                    this.storeList = result.data;
                 });
                 this.showAdd = true;
             },
-            // 更改供应商
-            proChange(){
+            // 更改客户
+            customerChange(val){
+                let customer = this.customerList.filter(item => item.id == val)[0];
+                this.ruleForm.customerAddress = customer.customerAddress;
+            },
+            // 更改出货仓库
+            storeChange(){
                 this.checkedAllDetail = false;
                 this.checkedDetailGoods = [];
                 this.goodsList = [];
             },
             // 打开选择采购商品的弹出框
             openChooseGoods(){
-                if (this.ruleForm.proId == null || this.ruleForm.proId == ''){
+                if (this.ruleForm.storeId == null || this.ruleForm.storeId == ''){
                     this.$message({
                         showClose:true,
                         type:'warning',
-                        message:'请选择供应商'
+                        message:'请选择出货仓库'
                     })
                     return;
                 }
-                this.checkedProGoods = [];
-                this.checkedAllProGoods = false;
-                // 获取供应商下的所有商品
-                this.$http.post('goods/selGoodsByProId','providerId='+this.ruleForm.proId).then(result => {
-                    this.proGoods = result.data;
+
+                this.checkedGoods = [];
+                this.checkedAllGoods = false;
+                // 获取仓库下的所有商品信息
+                this.$http.post('inventoryDetail/selGoodsByStoreId','storeId='+this.ruleForm.storeId).then(result => {
+                    this.goods = result.data;
                     this.showChooseGoods = true;
                 })
+                
             },
             // 移除选中的商品
             removeChooseGoods(){
@@ -450,7 +452,6 @@
                     this.goodsList.forEach((goods,index) => {
                         if (goods.id == item){
                             this.goodsList.splice(index,1);
-                            // this.checkedDetailGoods.splice(idx,1);
                         }
                     })
                 })
@@ -467,7 +468,7 @@
                     inputErrorMessage: '商品数量必须是一个正整数'
                 }).then(({ value }) => {
                    goods.goodsCount = value;
-                   goods.totalMoney = parseInt(goods.goodsCount)*parseFloat(goods.costPrice);
+                   goods.totalMoney = parseInt(goods.goodsCount)*parseFloat(goods.wholePrice);
                    this.$forceUpdate();
                 }).catch(() => {
                     this.$message({
@@ -478,7 +479,7 @@
             },
             // 将选择的商品添加到goodsList中
             addGoodsToGoodsList(){
-                if (this.checkedProGoods.length == 0){
+                if (this.checkedGoods.length == 0){
                     this.$message({
                         showClose:true,
                         type:'warning',
@@ -487,20 +488,24 @@
                     return;
                 }
                 // 将选中的商品添加goodsList
-                this.proGoods.forEach((goods,index)=> {
-                    this.checkedProGoods.forEach((item,index) => {
-                        if (goods.id == item) {
+                this.goods.forEach((goods,index)=> {
+                    this.checkedGoods.forEach((item,index) => {
+                        if (goods.goodsId == item) {
+                            console.log('进入');
                             goods.checked = false;
                             // 判断商品是否已经存在
-                            let detail = this.goodsList.filter(detail => detail.id == item)[0];
+                            let detail = this.goodsList.filter(detail => detail.goodsId == item)[0];
                             if (detail != null){
-                                console.log("come in");
                                 detail.goodsCount=parseInt(detail.goodsCount)+1;
-                                detail.totalMoney=parseInt(detail.goodsCount)*parseFloat(detail.costPrice);
+                                detail.totalMoney=parseInt(detail.goodsCount)*parseFloat(detail.wholePrice);
                             } else{
+                                goods.goodsCode = goods.goods.goodsCode;
+                                goods.goodsName = goods.goods.goodsName;
+                                goods.wholePrice = goods.goods.wholePrice;
                                 goods.goodsCount = 1;
-                                goods.totalMoney = parseInt(goods.goodsCount)*parseFloat(goods.costPrice);
+                                goods.totalMoney = parseInt(goods.goodsCount)*parseFloat(goods.wholePrice);
                                 this.goodsList.push(goods);
+                                console.log('come in');
                             }
                         }
                     })
@@ -523,23 +528,23 @@
                 this.handleCheckedStateChange(val,id,this.checkedDetailGoods,this.goodsList,this.checkedAllDetail,0);
             },
             // 选中供应商下的所有商品
-            handleCheckAllProGoodsChange(val) {
-                this.handleCheckedAllStateChange(val,this.proGoods,1);
+            handleCheckAllGoodsChange(val) {
+                this.handleCheckedAllStateChange(val,this.goods,1);
             },
             // 商品选中状态发生改变(供应商)
-            handleCheckedProGoodsChange(val,id) {
-                this.handleCheckedStateChange(val,id,this.checkedProGoods,this.proGoods,this.checkedAllProGoods,1);
+            handlecheckedGoodsChange(val,id) {
+                this.handleCheckedStateChange(val,id,this.checkedGoods,this.goods,this.checkedAllGoods,1);
             },
             // 选中所有状态发生改变
             // val 选中状态 checkedList 选中项的列表 dataSourceList 原始数据（及供选择的数据）
-            // who 0:订单明细（checkedDetailGoods），1：供应商（checkedProGoods）
+            // who 0:订单明细（checkedDetailGoods），1：供应商（checkedGoods）
             handleCheckedAllStateChange(val,dataSourceList,who){
                 // 选中所有
                 let checkedList = [];
                 if (val){
                     dataSourceList.forEach((item,index) => {
                         item.checked = true;
-                        checkedList.push(item.id);
+                        checkedList.push(item.goodsId);
                     })
                 } else{
                     dataSourceList.forEach((item,index) => {
@@ -550,7 +555,7 @@
                 if (who == 0){
                     this.checkedDetailGoods = checkedList;
                 } else{
-                    this.checkedProGoods  = checkedList;
+                    this.checkedGoods  = checkedList;
                 }
                 // 强制更新
                 this.$forceUpdate();
@@ -559,7 +564,7 @@
             handleCheckedStateChange(val,id,checkedList,dataSourceList,checkedAll,who){
                 let object = {};
                 dataSourceList.forEach((item,index) => {
-                    if (item.id == id){
+                    if (item.goodsId == id){
                         item.checked = val;
                         object = item;
                     }
@@ -567,7 +572,7 @@
                 // 判断是否选中
                 if (object.checked){
                     // 添加到选中的列表中
-                    checkedList.push(object.id);
+                    checkedList.push(object.goodsId);
                 }else{
                     checkedList.forEach((item,index) => {
                         if (item == id){
@@ -586,23 +591,23 @@
                     this.checkedAllDetail = checkedAll;
                     this.checkedDetailGoods = checkedList;
                 } else{
-                    this.checkedAllProGoods = checkedAll;
-                    this.checkedProGoods  = checkedList;
+                    this.checkedAllGoods = checkedAll;
+                    this.checkedGoods  = checkedList;
                 }
                 this.$forceUpdate();
             },
-            // 供应商详情
+            // 订单详情
             orderDetail(id){
-                this.$http.post('order/selOrderAndDetailByOrderId/','id='+id).then(result => {
-                    this.order = result.data[0];
+                this.$http.post('wholeOrder/findById/','id='+id).then(result => {
+                    this.order = result.data;
                     this.showDetail = true;
                 });
             },
             // 通过审核
             pass(orderId,singleState){
                 // 获取当前订单状态，并进行判断是否需要修改
-                this.$http.post('order/orderList/','id='+orderId).then(result => {
-                    let order = result.data.orderVoList[0];
+                this.$http.post('wholeOrder/findById/','id='+orderId).then(result => {
+                    let order = result.data;
                     // 目标状态和当前状态一致
                     if (order.singleState == singleState){
                         this.$message({
@@ -620,8 +625,8 @@
             // 拒绝通过审核
             noPass(orderId,singleState){
                 // 获取当前订单状态，并进行判断是否需要修改
-                this.$http.post('order/orderList/','id='+orderId).then(result => {
-                    let order = result.data.orderVoList[0];
+                this.$http.post('wholeOrder/findById/','id='+orderId).then(result => {
+                    let order = result.data;
                     // 目标状态和当前状态一致
                     if (order.singleState == singleState){
                         this.$message({
@@ -630,7 +635,7 @@
                             message:'该订单已被拒绝通过审核'
                         });
                     } else{
-                        // 判断是否已收货或者退货
+                        // 判断是否已发货或者退货
                         if (order.takeState == 1 || order.takeState == 2){
                             this.$message({
                                 showClose:true,
@@ -648,8 +653,8 @@
             // 修改单据状态
             updateOrderSingleState(orderId,singleState){
                 // 获取当前订单状态，并进行判断是否需要修改
-                this.$http.post('order/upSingleState/','id='+orderId+'&singleState='+singleState).then(result => {
-                    if (result.data.state){
+                this.$http.post('wholeOrder/updateWhole/','id='+orderId+'&singleState='+singleState).then(result => {
+                    if (result.data.result){
                         this.$message({
                             showClose:true,
                             type:'success',
@@ -677,19 +682,25 @@
                             this.$message({
                                 showClose:true,
                                 type:'warning',
-                                message:'请选择要采购的商品'
+                                message:'请选择要出售的商品'
                             });
                             return false;
                         }
 
-                        // 生成采购订单
+                        // 生成批发订单
                         let params = Qs.stringify(this.ruleForm);
-                        let goodsList = JSON.stringify(this.goodsList);
+
+                        let goodsList = [];
+                        this.goodsList.forEach((item,index) => {
+                            let goods = {goodsId:item.goodsId,goodsCount:item.goodsCount,totalMoney:item.totalMoney};
+                            goodsList.push(goods);
+                        })
+                         let goodsListStr = JSON.stringify(goodsList);
 
                         // console.log(params+'---'+goodsList);
                         // return;
-                        this.$http.post('order/insertOrder','params='+params+'&shopId='+sessionStorage.getItem("shopId")+'&str='+goodsList).then(result => {
-                            if (result.data.state){
+                        this.$http.post('wholeOrder/addWholeOrder',params+'&shopId='+sessionStorage.getItem("shopId")+'&empId='+sessionStorage.getItem("empId")+'&str='+goodsListStr).then(result => {
+                            if (result.data.result){
                                 this.$message({
                                     showClose:true,
                                     type:'success',
@@ -725,7 +736,7 @@
 </script>
 
 <style scoped lang="less">
-    #orderList{
+    #wholeOrderList{
         .el-tag{
             &:hover{
                 cursor: pointer;

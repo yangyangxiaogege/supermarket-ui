@@ -33,6 +33,9 @@ import invoiceList from './components/purchase/invoiceList.vue';
 import rollbackList from './components/purchase/rollbackList.vue';
 // 导入wholesale模块
 import customerList from './components/wholesale/customerList.vue';
+import wholeOrderList from './components/wholesale/wholeOrderList.vue';
+import wholeInvoiceList from './components/wholesale/wholeInvoiceList.vue';
+import wholeRollbackList from './components/wholesale/wholeRollbackList.vue';
 
 const router = new VueRouter({
   //  mode:'history',
@@ -69,7 +72,10 @@ const router = new VueRouter({
                 {path:'orderList',component:orderList,name:'orderList'},
                 {path:'invoiceList',component:invoiceList,name:'invoiceList'},
                 {path:'rollbackList',component:rollbackList,name:'rollbackList'},
-                {path:'customerList',component:customerList,name:'customerList'}
+                {path:'customerList',component:customerList,name:'customerList'},
+                {path:'wholeOrderList',component:wholeOrderList,name:'wholeOrderList'},
+                {path:'wholeInvoiceList',component:wholeInvoiceList,name:'wholeInvoiceList'},
+                {path:'wholeRollbackList',component:wholeRollbackList,name:'wholeRollbackList'}
             ]
         },
     ]
