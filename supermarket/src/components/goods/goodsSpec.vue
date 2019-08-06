@@ -9,7 +9,7 @@
             <!--工具-->
             <div class="my-tools">
                 <el-button icon="glyphicon glyphicon-plus" size="small" @click="openAdd">新增商品规格</el-button>
-                <el-button icon="glyphicon glyphicon-edit" size="small" @click="batchDeleteSpecTmp">删除规格模板</el-button>
+                <el-button icon="glyphicon glyphicon-edit" size="small" @click="batchDeleteSpecTmp" style="color: red">删除规格模板</el-button>
                 <el-button icon="glyphicon glyphicon-refresh" size="small">刷新数据</el-button>
             </div>
             <!--数据-->

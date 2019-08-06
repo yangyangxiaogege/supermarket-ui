@@ -36,7 +36,11 @@ import customerList from './components/wholesale/customerList.vue';
 import wholeOrderList from './components/wholesale/wholeOrderList.vue';
 import wholeInvoiceList from './components/wholesale/wholeInvoiceList.vue';
 import wholeRollbackList from './components/wholesale/wholeRollbackList.vue';
-
+// 导入store模块
+import storeList from './components/store/storeList.vue';
+import inventoryCheck from './components/store/inventoryCheck.vue';
+// 导入summary模块
+import shouyin from './components/summary/shouyin.vue';
 const router = new VueRouter({
   //  mode:'history',
     // 匹配规则
@@ -45,6 +49,7 @@ const router = new VueRouter({
         {
             path:'/login',
             component:login,
+            name:'login',
             meta:{
                 // 表示不被拦截验证
                 noAuth:true
@@ -75,7 +80,10 @@ const router = new VueRouter({
                 {path:'customerList',component:customerList,name:'customerList'},
                 {path:'wholeOrderList',component:wholeOrderList,name:'wholeOrderList'},
                 {path:'wholeInvoiceList',component:wholeInvoiceList,name:'wholeInvoiceList'},
-                {path:'wholeRollbackList',component:wholeRollbackList,name:'wholeRollbackList'}
+                {path:'wholeRollbackList',component:wholeRollbackList,name:'wholeRollbackList'},
+                {path:'storeList',component:storeList,name:'storeList'},
+                {path:'inventoryCheck',component:inventoryCheck,name:'inventoryCheck'},
+                {path:'shouyin',component:shouyin,name:'shouyin'}
             ]
         },
     ]

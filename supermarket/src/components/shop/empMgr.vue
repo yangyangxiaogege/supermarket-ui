@@ -58,7 +58,6 @@
                     <td>{{emp.createDate}}</td>
                     <td>
                         <el-tag type="warning" size="small" @click="openDetail(emp.id)">详情</el-tag>
-                        <el-tag type="danger" size="small">删除</el-tag>
                     </td>
                 </tr>
                 </tbody>
@@ -204,7 +203,7 @@
                 // 分页数据
                 currentPage: 1,
                 totalCount:0,
-                pageSize:2,
+                pageSize:10,
                 // 是否显示添加框
                 showAdd:false,
                 showEdits:false,

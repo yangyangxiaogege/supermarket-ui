@@ -2,25 +2,26 @@
     <div id="home">
        <div class="header container-fluid">
            <div class="header-left">
-               <a href="#">
-                   <img src="../../resource/images/logo_03.png" alt="">
-               </a>
+<!--               <a href="#">-->
+<!--                   <img src="../../resource/images/512×512-点png2.png" alt="">-->
+                   Supermarket
+<!--               </a>-->
            </div>
            <div class="header-right">
                <ul class="my-nav">
                    <li><span class="glyphicon glyphicon-repeat" @click="refresh"></span></li>
-                   <li><span></span>当前时间</li>
-                   <li><span></span>当前时间</li>
-                   <li><span></span>当前时间</li>
-                   <li class="my-info">
-                       <img src="../../resource/images/512×512-点png.png">
-                       <span>深圳优户-点电报指挥收银</span>
-                       <div class="my-info-list">
+                   <li><span></span>{{currentTime}}</li>
+                   <li><span class="glyphicon glyphicon-envelope"></span>反馈建议</li>
+                   <li><span class="glyphicon glyphicon-question-sign"></span>帮助中心</li>
+                   <li class="my-info" @click="openInfoList">
+                       <img src="../../resource/images/512×512-点png2.png">
+                       <span >{{shopName}}</span>
+                       <div class="my-info-list" ref="myInfoList" v-if="showInfoList">
                            <ul>
                                <li><span class="glyphicon glyphicon-user"></span>个人信息</li>
-                               <li><span class="glyphicon glyphicon-pencil"></span>修改密码</li>
+                               <li @click="updatePassword"><span class="glyphicon glyphicon-pencil"></span>修改密码</li>
                                <li><span class="glyphicon glyphicon-list-alt"></span>操作日志</li>
-                               <li style="height: 60px;line-height: 60px;border-top: 1px solid black;"><span class="glyphicon glyphicon-off"></span>退出系统</li>
+                               <li style="height: 60px;line-height: 60px;border-top: 1px solid black;" @click="exit"><span class="glyphicon glyphicon-off"></span>退出系统</li>
                            </ul>
                        </div>
                    </li>
@@ -54,6 +55,33 @@
                 </div>
             </div>
         </div>
+
+        <!--修改密码-->
+        <transition>
+            <div class="my-tanchukuang" v-if="showUpdate">
+                <div>
+                    <div class="my-modal modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close"><span aria-hidden="true" @click="closeUpdate">×</span></button>
+                            <h4 class="modal-title">修改密码</h4>
+                        </div>
+                        <div class="modal-body">
+                            <el-form>
+                               <el-form-item label="密码">
+                                   <el-input placeholder="请输入密码" v-model="empPwd" type="password"></el-input>
+                               </el-form-item>
+                                <el-form-item label="确认密码">
+                                    <el-input placeholder="请输入密码" v-model="pwd" type="password"></el-input>
+                                </el-form-item>
+                            </el-form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" @click="submitForm()">修改</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
     </div>
 </template>
 
@@ -76,10 +104,18 @@
                     {name:'1',label:'首页',routerName:'welcome'},
                     {name:'2',label:'测试组件',routerName:'test',closable:true}
                 ],
-                menus:menus //导航菜单
+                showInfoList:false,
+                menus:menus, //导航菜单
+                currentTime:'', // 当前时间
+                shopName:'', //当前登陆店铺名称,
+                showUpdate:false,
+                empPwd:'',
+                pwd:''
             };
         },
         created(){
+            this.init();
+          this.clockStart();
           this.$router.push({name:'welcome'});
         },
         methods: {
@@ -93,6 +129,100 @@
             // 刷新router-view内容
             refresh(){
                 this.activeDate = Math.random().toString();
+            },
+            init(){
+                this.$http.post('shop/shopList','id='+sessionStorage.getItem("shopId")).then(result => {
+                    this.shopName = result.data.shopList[0].shopName;
+                })
+            },
+            clockStart(){
+                setInterval(() => {
+                    this.nowTime();
+                },1000);
+            },
+             nowTime(){
+                //获取年月日
+                let time=new Date();
+                let year=time.getFullYear();
+                let month=time.getMonth()+1;
+                let day=time.getDate();
+
+                //获取时分秒
+                let h=time.getHours();
+                let m=time.getMinutes();
+                let s=time.getSeconds();
+
+                //检查是否小于10
+                h=this.check(h);
+                m=this.check(m);
+                s=this.check(s);
+                this.currentTime = "当前时间："+year+"年"+month+"月"+day+"日  "+h+":"+m+":"+s;
+            },
+            //时间数字小于10，则在之前加个“0”补位。
+             check(i){
+                //用三元运算符
+                let num;
+                i<10?num="0"+i:num=i;
+                return num;
+            },
+            openInfoList(){
+                this.showInfoList = !this.showInfoList;
+                this.$forceUpdate();
+            },
+            // 打开修改密码框
+            updatePassword(){
+                this.$refs.myInfoList.style.display = 'none';
+                // this.showInfoList = false;
+                this.showUpdate = true;
+            },
+            // 修改密码
+            submitForm(){
+                if (this.empPwd == ''){
+                    this.$message({
+                        showClose:true,
+                        type:'warning',
+                        message:'密码不能为空'
+                    });
+                    return;
+                }
+
+                if (this.empPwd.length<6){
+                    this.$message({
+                        showClose:true,
+                        type:'warning',
+                        message:'密码长度要大于6位'
+                    });
+                    return;
+                }
+
+                if (this.pwd != this.empPwd){
+                    this.$message({
+                        showClose:true,
+                        type:'warning',
+                        message:'两次密码不一致'
+                    });
+                    return;
+                }
+
+                this.$http.post('employee/upPwd','id='+sessionStorage.getItem("empId")+'&empPwd='+this.empPwd+'&empAccount='+sessionStorage.getItem("empAccount")).then(result => {
+                    if (result.data.state){
+                        this.$alert('密码修改成功，请重新登陆', '系统提示', {
+                            confirmButtonText: '确定',
+                            callback: action => {
+                                this.exit();
+                            }
+                        });
+                    }else{
+                        this.$message({
+                            showClose:true,
+                            type:'error',
+                            message:'密码修改失败'
+                        });
+                    }
+                })
+            },
+            closeUpdate(){
+              this.showUpdate = false;
             },
             // 添加选项卡
             addTab(tabName,routerName){
@@ -146,6 +276,15 @@
                 this.activeName = activeName;
                 this.tabs = tabList.filter(tab => tab.name!=targetName);
                 
+            },
+            // 退出
+            exit(){
+                this.$http.post('employee/exit').then(result => {
+                    if (result.data.state){
+                        sessionStorage.clear();
+                        this.$router.push({ name: 'login'});
+                    }
+                })
             }
         }
     }
@@ -169,7 +308,20 @@
             background-color: #09c;
             line-height: 60px;
             .header-left{
+                height: 100%;
+                line-height: 60px;
                 float: left;
+                /*h1{*/
+                /*    height: 60px;*/
+                /*    line-height: 60px;*/
+                /*}*/
+                //-----------------------------
+                font-size: 25px;
+                background: #EEE url(data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAHklEQVQImWNkYGBgYGD4//8/A5wF5SBYyAr+//8PAPOCFO0Q2zq7AAAAAElFTkSuQmCC) repeat;
+                text-shadow: 3px -3px #f5f6e9, 2px -2px #be4747;
+                font-weight: bold;
+                -webkit-text-fill-color: transparent;
+                -webkit-background-clip: text;
                 img{
                     width: 115px;
                     height: 35px;
@@ -190,9 +342,12 @@
                         color: white;
                         &:hover{
                             background: #008FBF;
-                            .my-info-list{
-                                display: block;
-                            }
+                            /*.my-info-list{*/
+                            /*    display: block;*/
+                            /*}*/
+                        }
+                        span{
+                            padding: 0 5px;
                         }
                     }
                     .my-info{
@@ -205,7 +360,7 @@
                             border-radius: 50%;
                         }
                         .my-info-list{
-                            display: none;
+                            /*display: none;*/
                             width: 100%;
                             /*height: 300px;*/
                             position: absolute;
@@ -289,5 +444,47 @@
             }
         }
 
+        .my-tanchukuang{
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-color: rgba(0,0,0,0.5);
+            /*border: 15px solid white;*/
+            z-index: 1000;
+            .my-modal{
+                overflow: auto;
+                height: 404px;
+                width: 600px;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                margin-top: -202px;
+                margin-left: -300px;
+
+                .my-edit-item{
+                    padding: 15px;
+                }
+            }
+
+            .my-logo{
+                width: 60px;
+                height: 60px;
+                border: 1px solid gray;
+            }
+        }
+
+        .v-enter,
+        .v-leave-to {
+            /*v-enter 动画未开始时，v-leave-to 动画已经结束*/
+            opacity: 0;
+        }
+
+        .v-enter-active,
+        .v-leave-active {
+            /*v-enter-active 入场时触发的动画，v-leave-active 离场时触发的动画*/
+            transition: all 0.8s ease;
+        }
     }
 </style>

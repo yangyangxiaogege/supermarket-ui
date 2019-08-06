@@ -219,7 +219,7 @@
                                     <el-input v-model="order.readyDate" :disabled="true"></el-input>
                                 </el-form-item>
                                 <el-form-item label="收货人">
-                                    <el-input v-model="order.customerLinkman" :disabled="true"></el-input>
+                                    <el-input v-model="order.customerLinkMan" :disabled="true"></el-input>
                                 </el-form-item>
                             </el-form>
                             <div class="alert alert-success" role="alert">采购订单详情</div>
@@ -710,6 +710,7 @@
                                 this.ruleForm = {};
                                 this.checkedDetailGoods = [];
                                 this.checkedAllDetail = false;
+                                this.goodsList = [];
                             } else{
                                 this.$message({
                                     showClose:true,

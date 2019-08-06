@@ -65,8 +65,8 @@ const navMenu = [
 		name:"仓库管理",
 		icon:"el-icon-edit-outline",
 		sub:[
-			{index:"7-1",name:"库存盘点",routerName:"customerList",icon:"el-icon-tickets"},
-			{index:"7-2",name:"调拨申请单",routerName:"wholeOrderList",icon:"el-icon-tickets"},
+			{index:"7-1",name:"仓库列表",routerName:"storeList",icon:"el-icon-tickets"},
+			{index:"7-2",name:"库存盘点",routerName:"inventoryCheck",icon:"el-icon-tickets"},
 			{index:"7-3",name:"调拨出库单",routerName:"wholeList",icon:"el-icon-tickets"},
 			{index:"7-4",name:"调拨入库单",routerName:"wholeRollbackList",icon:"el-icon-tickets"},
 		]
@@ -76,7 +76,7 @@ const navMenu = [
 		name:"报表管理",
 		icon:"el-icon-document",
 		sub:[
-			{index:"8-1",name:"收银信息记录",routerName:"customerList",icon:"el-icon-tickets"},
+			{index:"8-1",name:"收银信息记录",routerName:"shouyin",icon:"el-icon-tickets"},
 		]
 	}
 ]

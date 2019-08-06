@@ -549,6 +549,7 @@
                                     message:'添加成功'
                                 })
                                 this.ruleForm = {};
+                                this.init();
                             } else{
                                 this.$message({
                                     showClose:true,

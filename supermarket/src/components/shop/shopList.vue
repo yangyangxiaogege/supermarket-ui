@@ -162,26 +162,10 @@
                             <h4 class="modal-title">批量修改</h4>
                         </div>
                         <div class="modal-body">
-                            <div class="my-edit-item">
-                                <el-checkbox v-model="checked"></el-checkbox>
-                                <el-select v-model="shop.shopTypeId" placeholder="请选择" size="small">
-                                    <el-option
-                                            v-for="item in shopTypes"
-                                            :key="item.shopTypeName"
-                                            :label="item.shopTypeName"
-                                            :value="item.id">
-                                    </el-option>
-                                </el-select>
-                            </div>
-                            <div class="my-edit-item">
-                                <el-checkbox v-model="checked"></el-checkbox>
-                                <el-radio v-model="radio" label="1">备选项</el-radio>
-                                <el-radio v-model="radio" label="2">备选项</el-radio>
-                            </div>
+                            <div class="alert alert-warning" role="alert">服务器维修中，该功能暂时失效,为您带来的不便请谅解，祝您工作愉快</div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-default">Close</button>
-                            <button type="button" class="btn btn-primary">Save changes</button>
+                            <button type="button" class="btn btn-primary">确定</button>
                         </div>
                     </div>
                 </div>
@@ -206,7 +190,7 @@
                                     <el-tag>{{shop.createDate}}</el-tag>
                                 </el-form-item>
                                 <el-form-item label="LOGO">
-                                    <img class="my-logo" src="../../resource/images/512×512-点png.png">
+                                    <img class="my-logo" src="../../resource/images/512×512-点png2.png">
                                     <span style="color: red;">图片分辨率:建议500*500</span>
                                 </el-form-item>
                                 <el-form-item label="门店名称" prop="shopName">
@@ -265,13 +249,13 @@
                 },
                 // 门店列表
                 shopList:[
-                    {id:'1001',shopName:'厦门沃尔玛',checked:false,shopType:{shopTypeName:'a'},shopAccount:'',shopLinkman:'',shopPhone:'',shopAddress:'',createdDate:'',shopHours:'08:30-22:00'},
-                    {id:'1002',shopName:'阿里巴巴',checked:false,shopType:{shopTypeName:'a'},shopAccount:'',shopLinkman:'',shopPhone:'',shopAddress:'',createdDate:'',shopHours:'09:30-22:00'}
+                    // {id:'1001',shopName:'厦门沃尔玛',checked:false,shopType:{shopTypeName:'a'},shopAccount:'',shopLinkman:'',shopPhone:'',shopAddress:'',createdDate:'',shopHours:'08:30-22:00'},
+                    // {id:'1002',shopName:'阿里巴巴',checked:false,shopType:{shopTypeName:'a'},shopAccount:'',shopLinkman:'',shopPhone:'',shopAddress:'',createdDate:'',shopHours:'09:30-22:00'}
                 ],
                 // 门店分页数据
                 pageList:[
-                    {id:'1001',shopName:'厦门沃尔玛',checked:false,shopType:{shopTypeName:'a'},shopAccount:'',shopLinkman:'',shopPhone:'',shopAddress:'',createdDate:'',shopHours:'08:30-22:00'},
-                    {id:'1002',shopName:'阿里巴巴',checked:false,shopType:{shopTypeName:'a'},shopAccount:'',shopLinkman:'',shopPhone:'',shopAddress:'',createdDate:'',shopHours:'09:30-22:00'}
+                    // {id:'1001',shopName:'厦门沃尔玛',checked:false,shopType:{shopTypeName:'a'},shopAccount:'',shopLinkman:'',shopPhone:'',shopAddress:'',createdDate:'',shopHours:'08:30-22:00'},
+                    // {id:'1002',shopName:'阿里巴巴',checked:false,shopType:{shopTypeName:'a'},shopAccount:'',shopLinkman:'',shopPhone:'',shopAddress:'',createdDate:'',shopHours:'09:30-22:00'}
                     ],
                 // 门店类型
                 shopTypeList:[],
@@ -339,8 +323,21 @@
             refresh(){
                 this.reload();
             },
+            openFullScreen(){
+                const loading = this.$loading({
+                    lock: true,
+                    text: 'Loading',
+                    spinner: 'el-icon-loading',
+                    background: 'rgba(0, 0, 0, 0.7)'
+                });
+                return loading;
+            },
+            closeFullScreen(loading){
+                loading.close();
+            },
             // 获取门店列表
             init(){
+                let loading = this.openFullScreen();
                 // let params = QS.stringify(this.shop);
                 this.$http.post('shop/shopList/').then(result => {
                     this.shopList = result.data.shopList;
@@ -353,6 +350,7 @@
                 });
                 this.$http.post('shop/shopTypeList/').then(result => {
                     this.shopTypeList = result.data;
+                    this.closeFullScreen(loading);
                 });
 
                 this.$http.post('shop/shopNameList/').then(result => {

@@ -34,7 +34,7 @@
                 <el-button icon="glyphicon glyphicon-plus" size="small" @click="openAdd">新增会员</el-button>
                 <el-button icon="glyphicon glyphicon-edit" size="small" @click="openEdits">批量修改</el-button>
                 <el-button icon="glyphicon glyphicon-edit" size="small" @click="openSorce">增减积分</el-button>
-                <el-button icon="glyphicon glyphicon-edit" size="small" @click="batchDeleteMember">删除会员</el-button>
+                <el-button icon="glyphicon glyphicon-edit" size="small" @click="batchDeleteMember" style="color: red">删除会员</el-button>
                 <el-button icon="glyphicon glyphicon-download-alt" size="small" @click="exportExcel">导出excel</el-button>
                 <el-button icon="glyphicon glyphicon-refresh" size="small" @click="refresh">刷新数据</el-button>
             </div>

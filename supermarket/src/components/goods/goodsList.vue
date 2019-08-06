@@ -34,7 +34,7 @@
                 <el-button icon="glyphicon glyphicon-plus" size="small" @click="openAdd">新增商品信息</el-button>
                 <el-button icon="glyphicon glyphicon-edit" size="small" @click="openSort">编辑排序</el-button>
                 <el-button icon="glyphicon glyphicon-edit" size="small" @click="openEdits">批量修改</el-button>
-                <el-button icon="glyphicon glyphicon-edit" size="small" @click="batchDeleteGoods">批量删除</el-button>
+                <el-button icon="glyphicon glyphicon-edit" size="small" @click="batchDeleteGoods" style="color: red">批量删除</el-button>
                 <el-button icon="glyphicon glyphicon-download-alt" size="small" @click="exportExcel">导出excel</el-button>
                 <el-button icon="glyphicon glyphicon-refresh" size="small" @click="refresh">刷新数据</el-button>
             </div>
