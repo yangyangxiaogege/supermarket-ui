@@ -17,7 +17,7 @@
                         value-format="yyyy/MM/dd"
                         placeholder="结束日期">
                 </el-date-picker>
-                <el-input v-model="queryTicket.condition" placeholder="店铺名称/单号/会员/收银员" style="width: 250px" size="small"></el-input>
+                <el-input v-model="queryTicket.condition" placeholder="店铺名称" style="width: 250px" size="small"></el-input>
                 <el-button type="primary" size="small" @click="searchTicket">查询</el-button>
             </div>
             <!--工具-->

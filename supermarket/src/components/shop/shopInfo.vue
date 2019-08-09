@@ -26,7 +26,6 @@
                 <el-time-picker
                         is-range
                         v-model="shop.doBusinessTime"
-                        value-format="HH:mm"
                         range-separator="-"
                         start-placeholder="开始时间"
                         end-placeholder="结束时间"

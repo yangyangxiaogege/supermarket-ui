@@ -76,7 +76,6 @@
                     <td>{{item.createDate}}</td>
                     <td>
                         <el-tag type="warning" size="small" @click="shopDetail(item.shopAccount)">详情</el-tag>
-                        <el-tag type="danger" size="small">删除</el-tag>
                     </td>
                 </tr>
                 </tbody>
@@ -130,6 +129,9 @@
                                                 :value="item.id">
                                         </el-option>
                                     </el-select>
+                                </el-form-item>
+                                <el-form-item label="门店地址" prop="shopAddress">
+                                    <el-input v-model="ruleForm.shopAddress"></el-input>
                                 </el-form-item>
                                 <el-form-item label="联系人" prop="shopLinkman">
                                     <el-input v-model="ruleForm.shopLinkman"></el-input>
@@ -206,7 +208,6 @@
                                     <el-time-picker
                                             is-range
                                             v-model="shop.doBusinessTime"
-                                            value-format="HH:mm"
                                             range-separator="-"
                                             start-placeholder="开始时间"
                                             end-placeholder="结束时间"
@@ -216,7 +217,7 @@
                                 <el-form-item label="门店公告">
                                     <el-input type="textarea" v-model="shop.shopAdvice"></el-input>
                                 </el-form-item>
-                                <el-form-item label="门店地址">
+                                <el-form-item label="门店地址" prop="shopAddress">
                                     <el-input v-model="shop.shopAddress"></el-input>
                                 </el-form-item>
                             </el-form>
@@ -300,6 +301,9 @@
                     pwd: [
                         { required: true, message: '请再次输入门店密码', trigger: 'blur' },
                         { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
+                    ],
+                    shopAddress:[
+                        {required:true,message:'门店地址不能为空',trigger:'blur'}
                     ],
                     shopLinkman: [
                         { required: true, message: '请输入联系人姓名', trigger: 'blur' }
@@ -615,6 +619,7 @@
                                             type:'success',
                                             message:'门店信息添加成功'
                                         })
+                                        this.ruleForm = {};
                                     } else{
                                         this.$message({
                                             showClose:true,

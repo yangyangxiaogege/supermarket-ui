@@ -283,7 +283,7 @@
                     this.$http.post('store/selStoreAndShop','storeName='+value+'&shopId='+sessionStorage.getItem("shopId")).then(result => {
                         if (result.data.length == 0){
                             // 修改仓库
-                            this.$http.post('store/insertStore','storeName='+value+'&shopId='+sessionStorage.getItem("shopId")).then(result => {
+                            this.$http.post('store/updateStore','id='+storeId+'&storeName='+value).then(result => {
                                 // 修改成功
                                 if (result.data.state){
                                     this.$message({
@@ -375,40 +375,40 @@
                     this.storeDetailList = result.data;
                 });
             },
-            // 保存更新
-            updatestore(formName){
-                this.$refs[formName].validate((valid) => {
-                    if (valid) {
-                        let specDetailId = this.store.specDetailId[this.store.specDetailId.length-1];
-                        this.store.specDetailId = specDetailId;
-                        let params = Qs.stringify(this.store);
-                        this.$http.post('store/updatestore',params).then(result => {
-                            if (result.data.result){
-                                this.$message({
-                                    showClose:true,
-                                    type:'success',
-                                    message:'保存成功'
-                                })
-                                // 重新进行数据初始化
-                                this.init();
-                            }else{
-                                this.$message({
-                                    showClose:true,
-                                    type:'danger',
-                                    message:'保存失败'
-                                })
-                            }
-                        })
-                    } else {
-                        this.$message({
-                            showClose:true,
-                            type:'warning',
-                            message:'请填写完整信息'
-                        })
-                        return false;
-                    }
-                });
-            },
+            // // 保存更新
+            // updatestore(formName){
+            //     this.$refs[formName].validate((valid) => {
+            //         if (valid) {
+            //             let specDetailId = this.store.specDetailId[this.store.specDetailId.length-1];
+            //             this.store.specDetailId = specDetailId;
+            //             let params = Qs.stringify(this.store);
+            //             this.$http.post('store/updatestore',params).then(result => {
+            //                 if (result.data.result){
+            //                     this.$message({
+            //                         showClose:true,
+            //                         type:'success',
+            //                         message:'保存成功'
+            //                     })
+            //                     // 重新进行数据初始化
+            //                     this.init();
+            //                 }else{
+            //                     this.$message({
+            //                         showClose:true,
+            //                         type:'danger',
+            //                         message:'保存失败'
+            //                     })
+            //                 }
+            //             })
+            //         } else {
+            //             this.$message({
+            //                 showClose:true,
+            //                 type:'warning',
+            //                 message:'请填写完整信息'
+            //             })
+            //             return false;
+            //         }
+            //     });
+            // },
             closeDetail(){
                 this.showDetail = false;
             },
