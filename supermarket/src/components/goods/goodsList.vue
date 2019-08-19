@@ -552,6 +552,7 @@
                 this.$http.post('provider/proList','shopId='+sessionStorage.getItem("shopId")+'&proStatus=1').then(result => {
                     this.providerList = result.data.providerList;
                 });
+                this.specTmpList= [];
                 // 获取商品规格
                 this.getSpecTmpList();
                 this.showAdd = true;
@@ -652,6 +653,7 @@
                 this.$http.post('provider/proList').then(result => {
                     this.providerList = result.data.providerList;
                 });
+                this.specTmpList= [];
                 // 获取商品规格
                 this.getSpecTmpList();
 

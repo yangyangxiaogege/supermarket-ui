@@ -4,6 +4,18 @@
             <!--搜索区-->
             <div class="my-search">
                 <el-input v-model="queryOrder.condition" placeholder="供应商名称/收货人/收获电话/地址" style="width: 250px" size="small"></el-input>
+                <el-select v-model="queryOrder.takeState" filterable placeholder="请选择收货状态" size="small">
+                    <el-option label="请选择收货状态" value=""></el-option>
+                    <el-option value="0" label="待收货"></el-option>
+                    <el-option value="1" label="已收货"></el-option>
+                    <el-option value="2" label="已退货"></el-option>
+                </el-select>
+                <el-select v-model="queryOrder.singleState" filterable placeholder="请选择审核状态" size="small">
+                    <el-option label="请选择审核状态" value=""></el-option>
+                    <el-option value="0" label="待审核"></el-option>
+                    <el-option value="1" label="已审核"></el-option>
+                    <el-option value="2" label="未通过审核"></el-option>
+                </el-select>
                 <el-button type="primary" size="small" @click="searchOrder">查询</el-button>
             </div>
             <!--工具-->
@@ -696,7 +708,9 @@
                                     message:'添加成功'
                                 });
                                 this.init();
+                                let shopName = this.ruleForm.shopName;
                                 this.ruleForm = {};
+                                this.ruleForm.shopName = shopName;
                                 this.checkedDetailGoods = [];
                                 this.checkedAllDetail = false;
                                 this.goodsList = [];

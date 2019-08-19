@@ -4,6 +4,18 @@
             <!--搜索区-->
             <div class="my-search">
                 <el-input v-model="queryOrder.condition" placeholder="门店名称/订单号/客户名称/收货人/收货地址" style="width: 350px" size="small"></el-input>
+                <el-select v-model="queryOrder.takeState" filterable placeholder="请选择收货状态" size="small">
+                    <el-option label="请选择发货状态" value=""></el-option>
+                    <el-option value="0" label="待发货"></el-option>
+                    <el-option value="1" label="已发货"></el-option>
+                    <el-option value="2" label="已退货"></el-option>
+                </el-select>
+                <el-select v-model="queryOrder.singleState" filterable placeholder="请选择审核状态" size="small">
+                    <el-option label="请选择审核状态" value=""></el-option>
+                    <el-option value="0" label="待审核"></el-option>
+                    <el-option value="1" label="已审核"></el-option>
+                    <el-option value="2" label="未通过审核"></el-option>
+                </el-select>
                 <el-button type="primary" size="small" @click="searchOrder">查询</el-button>
             </div>
             <!--工具-->
@@ -20,7 +32,7 @@
                     <th>店铺名称</th>
                     <th>客户</th>
                     <th>单据状态</th>
-                    <th>收获状态</th>
+                    <th>发获状态</th>
                     <th>单据日期</th>
                     <th>收货人</th>
                     <th>收获电话</th>

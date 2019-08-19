@@ -242,10 +242,10 @@
                                     <el-input v-model="member.residueMoney" :disabled="true"></el-input>
                                 </el-form-item>
                                 <el-form-item label="消费积分" >
-                                    <el-input v-model="member.residueMoney" :disabled="true"></el-input>
+                                    <el-input v-model="member.totalSorce" :disabled="true"></el-input>
                                 </el-form-item>
                                 <el-form-item label="剩余积分" >
-                                    <el-input v-model="member.residueMoney" :disabled="true"></el-input>
+                                    <el-input v-model="member.residueSorce" :disabled="true"></el-input>
                                 </el-form-item>
                             </el-form>
                         </div>
@@ -470,12 +470,16 @@
                             message: '修改成功'
                         });
                         this.init();
+                        this.checkedMemberList = [];
+                        this.totalSorce = '';
+                        this.showSorce = false;
                     } else{
                         this.$message({
                             showClose: true,
                             type: 'error',
                             message: '修改失败'
                         });
+                        this.totalSorce = '';
                     }
                 })
             },

@@ -232,9 +232,6 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" >退货</button>
-                        </div>
                     </div>
                 </div>
             </div>

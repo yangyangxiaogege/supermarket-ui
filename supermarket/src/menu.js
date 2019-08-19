@@ -67,8 +67,8 @@ const navMenu = [
 		sub:[
 			{index:"7-1",name:"仓库列表",routerName:"storeList",icon:"el-icon-tickets"},
 			{index:"7-2",name:"库存盘点",routerName:"inventoryCheck",icon:"el-icon-tickets"},
-			{index:"7-3",name:"调拨出库单",routerName:"wholeList",icon:"el-icon-tickets"},
-			{index:"7-4",name:"调拨入库单",routerName:"wholeRollbackList",icon:"el-icon-tickets"},
+			// {index:"7-3",name:"调拨出库单",routerName:"wholeList",icon:"el-icon-tickets"},
+			// {index:"7-4",name:"调拨入库单",routerName:"wholeRollbackList",icon:"el-icon-tickets"},
 		]
 	},
 	{

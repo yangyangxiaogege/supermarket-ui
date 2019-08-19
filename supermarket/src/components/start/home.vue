@@ -102,7 +102,7 @@
                 activeName:'1', //当前选中的tab
                 tabs:[ //选项卡
                     {name:'1',label:'首页',routerName:'welcome'},
-                    {name:'2',label:'测试组件',routerName:'test',closable:true}
+                    // {name:'2',label:'测试组件',routerName:'test',closable:true}
                 ],
                 showInfoList:false,
                 menus:menus, //导航菜单

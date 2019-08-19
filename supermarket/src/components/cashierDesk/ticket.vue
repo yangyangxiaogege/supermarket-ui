@@ -307,7 +307,7 @@
             },
             // 导出小票数据
             exportExcel(){
-                window.location.href = this.$store.state.baseUrl+'shop/exportShop';
+                window.location.href = this.$store.state.baseUrl+'ticket/exportTicket';
             },
             // 小票详情
             ticketDetail(id){
@@ -454,7 +454,10 @@
                             showClose:true,
                             type:'success',
                             message:'添加成功'
-                        })
+                        });
+                        this.ruleForm = {};
+                        this.goodsList = [];
+                        this.init();
                     } else{
                         this.$message({
                             showClose:true,

@@ -50,7 +50,7 @@
         name: "login",
         data(){
             return {
-                empAccount:'linjiuge',
+                empAccount:'guojian',
                 empPwd:'123456',
                 loading:false
             }

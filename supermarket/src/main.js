@@ -8,8 +8,8 @@ Vue.use(VueRouter);
 import router from './router.js';
 // 导入axios模块
 import axios from 'axios';
-axios.defaults.baseURL = 'http://192.168.16.101:8080/'; //龙溪
-// axios.defaults.baseURL = 'http://192.167.9.126:8080/'; // 晓港
+// axios.defaults.baseURL = 'http://192.168.16.102:8080/'; //龙溪
+axios.defaults.baseURL = 'http://192.167.9.117:8080/'; // 晓港
 // axios.defaults.baseURL = 'http://192.168.9.131';
 axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 Vue.prototype.$http = axios;
@@ -83,7 +83,7 @@ import app from './app.vue';
 // 创建一个sotre进行公共数据管理
 var store = new Vuex.Store({
     state:{
-        baseUrl:'http://192.168.16.104:8080/'
+        baseUrl:'http://192.167.9.117:8080/'
     },
     mutations:{
 

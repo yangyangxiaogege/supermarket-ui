@@ -120,7 +120,7 @@
                                     <el-input v-model="ruleForm.shopName"></el-input>
                                 </el-form-item>
 
-                                <el-form-item label="门店类别">
+                                <el-form-item label="门店类别" prop="shopTypeId">
                                     <el-select v-model="ruleForm.shopTypeId" filterable placeholder="请选择门店类别" size="small">
                                         <el-option
                                                 v-for="item in shopTypeList"
@@ -641,7 +641,8 @@
                 });
             },
             resetForm(formName) {
-                this.$refs[formName].resetFields();
+                // this.$refs[formName].resetFields();
+                this.ruleForm = {};
             }
         }
     }

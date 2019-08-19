@@ -139,6 +139,7 @@
                 let flag = window.confirm("确定删除编号为("+ids+")的数据吗？该操作会将所有属于此类型的门店类型重置");
 
                 if (flag == false) return;
+
                 // console.log(ids);
                 this.$http.post('shopType/delShopType','ids='+ids).then(result => {
                     if (result.data.state){
@@ -151,8 +152,8 @@
                         this.init();
                     } else{
                         this.$message({
-                            type: 'success',
-                            message: '删除失败'
+                            type: 'error',
+                            message: '您所选的门店类型中，存在正被使用的，无法进行删除'
                         });
                     }
                 })
@@ -174,8 +175,8 @@
                         this.init();
                     } else{
                         this.$message({
-                            type: 'success',
-                            message: '删除失败'
+                            type: 'error',
+                            message: '您所选的门店类型中，存在正被使用的，无法进行删除'
                         });
                     }
                 })

@@ -141,10 +141,17 @@
                                     <el-input v-model="emp.empName"></el-input>
                                 </el-form-item>
                                 <el-form-item label="员工类型">
-                                    <el-input v-model="emp.roles.roleName" :disabled="true"></el-input>
+                                    <!--<el-input v-model="emp.roles.roleName" :disabled="true"></el-input>-->
+                                    <el-select v-model="emp.roleId" size="small">
+                                        <el-option label="请选择员工类型" value=""></el-option>
+                                        <!--<el-option label="正常" value="0"></el-option>
+                                        <el-option label="休息" value="1"></el-option>
+                                        <el-option label="离职" value="2"></el-option>-->
+                                        <el-option v-for="item in roleList" :value="item.id" :label="item.roleName" :key="item.id.toString()"></el-option>
+                                    </el-select>
                                 </el-form-item>
                                 <el-form-item label="员工状态">
-                                    <el-select v-model="emp.empStatus.toString()"  placeholder="请选择员工状态" size="small">
+                                    <el-select v-model="emp.empStatus"  placeholder="请选择员工状态" size="small">
                                         <el-option label="请选择员工状态" value=""></el-option>
                                         <el-option label="正常" value="0"></el-option>
                                         <el-option label="休息" value="1"></el-option>
@@ -373,6 +380,7 @@
                                     type:'success',
                                     message:'添加员工成功'
                                 });
+                                this.ruleForm = {};
                                 // 初始化数据
                                 this.init();
                             } else{
@@ -410,7 +418,12 @@
             openDetail(id){
                 // 根据员工id获取员工数据
                 this.$http.post('employee/findEmpById','id='+id).then(result => {
-                    this.emp = result.data;
+                    let emp = result.data;
+                    emp.empStatus = emp.empStatus.toString();
+                    if (emp.roleId == null){
+                        emp.roleId = '';
+                    }
+                    this.emp = emp;
                     this.showDetail = true;
                 })
             },
@@ -420,7 +433,7 @@
             // 更新员工信息
             updateEmp(){
                 let emp = this.emp;
-                let params = 'empStatus='+emp.empStatus+'&empName='+emp.empName+'&empPhone='+emp.empPhone+'&id='+emp.id;
+                let params = 'empStatus='+emp.empStatus+'&empName='+emp.empName+'&empPhone='+emp.empPhone+'&roleId='+emp.roleId+'&id='+emp.id;
                 this.$http.post('employee/modifyEmpById',params).then(result => {
                     if (result.data.result){
                         this.$message({

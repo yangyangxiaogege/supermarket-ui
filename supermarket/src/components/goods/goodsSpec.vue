@@ -489,6 +489,7 @@
                                });
                                this.ruleForm = {};
                                this.specInputs = [{count:1,val:''}];
+                               this.selectedSpecCount = 1;
                                this.init();
                            } else{
                                this.$message({
